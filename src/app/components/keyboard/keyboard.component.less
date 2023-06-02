@@ -1,0 +1,36 @@
+:host {
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 10px;
+  height: 200px;
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  justify-content: center;
+
+    .key {
+      user-select: none;
+      background-color: var(--color-tone-2);
+      border-radius: 5px;
+      padding: 5px;
+      margin: 2px;
+      min-width: 20px;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+
+      &.found {
+        background-color: var(--present-color-tone);
+      }
+
+      &.not-found {
+        background-color: var(--color-tone-4);
+      }
+    }
+}

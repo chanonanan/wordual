@@ -1,0 +1,18 @@
+{
+    "editor.codeActionsOnSave": {
+        "source.fixAll": true,
+        "source.organizeImports": true
+    },
+    "editor.detectIndentation": false,
+    "eslint.validate": [
+        "javascript",
+        "typescript"
+    ],
+    "[html]": {
+        "editor.formatOnSave": true,
+    },
+    "npm.enableRunFromFolder": true,
+    "files.insertFinalNewline": true,
+    "html.format.wrapLineLength": 120,
+    "typescript.preferences.importModuleSpecifier": "non-relative"
+}

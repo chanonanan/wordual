@@ -1,0 +1,50 @@
+:host {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .grid-container {
+    display: grid;
+    grid-template-rows: repeat(6, 1fr);
+    grid-gap: 5px;
+    width: 350px;
+    height: 100%;
+    max-height: 420px;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-gap: 5px;
+    align-self: center;
+    height: 100%;
+
+      .key {
+        border: 2px solid var(--color-tone-4);
+        border-radius: 5px;
+        text-align: center;
+        cursor: pointer;
+        width: 100%;
+        line-height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &.not-found {
+          background-color: var(--color-tone-4);
+          border-color: var(--color-tone-4);
+        }
+
+        &.wrong {
+          background-color: var(--present-color-tone);
+          border-color: var(--present-color-tone);
+        }
+
+        &.right {
+          background-color: var(--correct-color-tone);
+          border-color: var(--correct-color-tone);
+        }
+      }
+  }
+}
