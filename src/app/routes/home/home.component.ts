@@ -1,12 +1,16 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { v4 as uuid } from 'uuid';
 
 @Component({
   selector: 'app-home',
   template: `
-    <h1>Worduel!</h1>
-    <button (click)="createRoom()">Create room</button>
-    <button (click)="joinRoom()">Join room</button>
+    <section>
+      <h3>Wordual</h3>
+      <section class="button-section">
+        <button (click)="createRoom()">Create room</button>
+      </section>
+    </section>
 
   `,
   styleUrls: ['./home.component.less'],
@@ -16,7 +20,7 @@ export class HomeComponent {
   private router = inject(Router);
 
   createRoom(): void {
-    this.router.navigate(['room', 'asdasd']);
+    this.router.navigate(['room', uuid()]);
   }
 
   joinRoom(): void {
