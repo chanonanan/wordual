@@ -5,7 +5,7 @@ import { v4 as uuid } from 'uuid';
 @Component({
   selector: 'app-home',
   template: `
-    <section>
+    <section class="home-section">
       <h3>Wordual</h3>
       <section class="button-section">
         <button (click)="createRoom()">Create room</button>
