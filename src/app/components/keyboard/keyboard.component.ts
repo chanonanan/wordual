@@ -11,7 +11,7 @@ import { Observable } from 'rxjs';
   imports: [AsyncPipe, NgClass, NgIf, NgFor, UpperCasePipe],
   template: `
     <ng-container *ngIf="wordUsed$ | async as wordUsed">
-      <div class="row" *ngFor="let row of keys">
+      <div class="row" *ngFor="let row of rows">
         <div class="key" *ngFor="let key of row" (click)="onKeyTap(key)"
         [ngClass]="{'found': wordUsed.has(key) && wordUsed.get(key), 'not-found': wordUsed.has(key) && !wordUsed.get(key)}">
           {{key | uppercase}}
@@ -29,11 +29,13 @@ export class KeyboardComponent {
 
   @Select(GameState.wordUsed) public wordUsed$!: Observable<Map<string, boolean>>;
 
-  public readonly keys = [
+  public readonly rows = [
     ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
     ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
     ['enter', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '←']
   ];
+
+  private letters = this.rows.flat();
 
   private store: Store = inject(Store);
 
@@ -48,6 +50,9 @@ export class KeyboardComponent {
         this.store.dispatch(new GameActions.RemoveCharacter());
         break;
       default:
+        if (!this.letters.includes(key.toLowerCase())) {
+          break;
+        }
         this.store.dispatch(new GameActions.AddCharacter(key));
         break;
     }

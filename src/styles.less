@@ -17,7 +17,15 @@
   --keyboard-height: 200px;
 }
 
-body {
+html * {
+  box-sizing: border-box;
+  touch-action: none;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
   font-family: HelveticaNeue-Light, Helvetica Neue Light, Helvetica Neue, Helvetica,Arial, Lucida Grande, sans-serif;
   font-size: 1rem;
   background-color: var(--color-tone-7);

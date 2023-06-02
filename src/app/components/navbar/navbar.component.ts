@@ -7,7 +7,7 @@ import { Component } from '@angular/core';
   imports: [CommonModule],
   template: `
     <nav>
-      <h1>Wordual</h1>
+      <h3>Wordual</h3>
     </nav>
   `,
   styleUrls: ['./navbar.component.less']
