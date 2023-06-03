@@ -5,6 +5,7 @@ import { NavbarComponent } from "@components/navbar/navbar.component";
 import { NgxsLoggerPluginModule } from '@ngxs/logger-plugin';
 import { NgxsModule } from '@ngxs/store';
 import { GameState } from '@stores/game/game.state';
+import { UserState } from '@stores/user/user.state';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 
@@ -17,7 +18,7 @@ import { AppComponent } from './app.component';
     imports: [
         BrowserModule,
         AppRoutingModule,
-        NgxsModule.forRoot([GameState], {
+        NgxsModule.forRoot([GameState, UserState], {
             developmentMode: false
         }),
         NgxsLoggerPluginModule.forRoot(),

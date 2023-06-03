@@ -1,5 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, Input, OnInit, inject } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-room',
@@ -13,12 +13,11 @@ import { ActivatedRoute, Router } from '@angular/router';
   standalone: true
 })
 export class RoomComponent implements OnInit {
-  id!: string;
-  private route = inject(ActivatedRoute);
+  @Input() id?: string;
   private router = inject(Router);
 
   ngOnInit(): void {
-    this.id = this.route.snapshot.paramMap.get('id') || '';
+    console.log(this.id)
   }
 
   start(): void {

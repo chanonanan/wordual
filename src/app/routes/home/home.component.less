@@ -5,8 +5,11 @@
   justify-content: center;
   text-align: center;
 
-  .button-section {
+  .section {
     padding: 0 10px;
+  }
+
+  .button-section {
 
     button {
       width: 100%;
@@ -14,11 +17,25 @@
       margin: 5px 0;
     }
   }
+
+  .name-section {
+    display: flex;
+    gap: 5px;
+    height: 2rem;
+    line-height: 2rem;
+
+    input {
+      flex: 1;
+    }
+  }
 }
 .home-section {
   max-width: 500px;
   width: 100%;
   align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 
   button {
     cursor: pointer;

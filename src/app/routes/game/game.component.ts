@@ -1,5 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, Input } from '@angular/core';
 import { GridComponent } from "@components/grid/grid.component";
 import { KeyboardComponent } from "@components/keyboard/keyboard.component";
 
@@ -13,12 +12,6 @@ import { KeyboardComponent } from "@components/keyboard/keyboard.component";
     standalone: true,
     imports: [KeyboardComponent, GridComponent]
 })
-export class GameComponent implements OnInit {
-  id!: string;
-  private route = inject(ActivatedRoute);
-
-  ngOnInit(): void {
-    this.id = this.route.snapshot.paramMap.get('id') || '';
-  }
-
+export class GameComponent {
+  @Input() id?: string;
 }
