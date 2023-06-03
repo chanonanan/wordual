@@ -27,6 +27,7 @@
       "@stores/*": ["src/app/stores/*"],
       "@components/*": ["src/app/components/*"],
       "@models/*": ["src/app/models/*"],
+      "@guards/*": ["src/app/guards/*"],
     }
   },
   "angularCompilerOptions": {
