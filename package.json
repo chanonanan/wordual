@@ -19,6 +19,8 @@
     "@angular/platform-browser": "^16.0.0",
     "@angular/platform-browser-dynamic": "^16.0.0",
     "@angular/router": "^16.0.0",
+    "@dicebear/collection": "^6.0.4",
+    "@dicebear/core": "^6.0.4",
     "@ngxs/logger-plugin": "^3.8.1",
     "@ngxs/store": "^3.8.1",
     "ably": "^1.2.40",

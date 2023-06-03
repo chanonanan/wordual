@@ -28,6 +28,9 @@
       "@components/*": ["src/app/components/*"],
       "@models/*": ["src/app/models/*"],
       "@guards/*": ["src/app/guards/*"],
+      "@services/*": ["src/app/services/*"],
+      "@consts/*": ["src/app/consts/*"],
+      "@utils/*": ["src/app/utils/*"],
     }
   },
   "angularCompilerOptions": {

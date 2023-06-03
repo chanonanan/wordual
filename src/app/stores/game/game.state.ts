@@ -1,21 +1,36 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { EGameStatus } from '@models/game.model';
 import { EGridStatus, IGridData } from '@models/grid.model';
-import { Action, Selector, State, StateContext } from '@ngxs/store';
+import { Action, Selector, State, StateContext, Store } from '@ngxs/store';
 import { append, patch, removeItem } from '@ngxs/store/operators';
+import { AblyService } from '@services/ably/ably.service';
+import { UserState } from '@stores/user/user.state';
+import { map, tap } from 'rxjs';
 import { GameActions } from './game.action';
 
-class GameStateModel {
+export class GameStateModel {
   public answer: string = 'chano';
   public word: string[] = [];
   public histories: IGridData[][] = [];
+  public isHost: boolean = false;
+  public players: string[] = [];
+  public status: EGameStatus = EGameStatus.NotInitiated;
 };
 
+export const GameStateName = 'GameState';
+
 @State<GameStateModel>({
-  name: 'GameState',
+  name: GameStateName,
   defaults: new GameStateModel(),
 })
 @Injectable()
 export class GameState {
+  private store = inject(Store);
+  private router = inject(Router);
+  private ablyService = inject(AblyService);
+  private ngZone = inject(NgZone);
+
   @Selector()
   public static word(state: GameStateModel): string[] {
     return state.word;
@@ -24,6 +39,21 @@ export class GameState {
   @Selector()
   public static histories(state: GameStateModel): IGridData[][] {
     return state.histories;
+  }
+
+  @Selector()
+  public static isHost(state: GameStateModel): boolean {
+    return state.isHost;
+  }
+
+  @Selector()
+  public static players(state: GameStateModel): string[] {
+    return state.players;
+  }
+
+  @Selector()
+  public static status(state: GameStateModel): EGameStatus {
+    return state.status;
   }
 
   @Selector([GameState.histories])
@@ -108,5 +138,82 @@ export class GameState {
         word: [],
       })
     );
+  }
+
+  @Action(GameActions.CreateGame)
+  createGame(
+    ctx: StateContext<GameStateModel>,
+    { roomId }: GameActions.CreateGame
+  ) {
+
+    const username = this.store.selectSnapshot(UserState.username);
+    ctx.patchState({
+      isHost: true,
+      players: [username],
+    });
+
+    return this.ablyService.getChannel(username, roomId).pipe(
+      tap(() => {
+        ctx.patchState({
+          status: EGameStatus.Initiated,
+        });
+      }),
+      map(() => roomId),
+    );
+  }
+
+  @Action(GameActions.JoinGame)
+  joinGame(
+    ctx: StateContext<GameStateModel>,
+    { roomId }: GameActions.JoinGame
+  ) {
+
+    const username = this.store.selectSnapshot(UserState.username);
+
+    return this.ablyService.getChannel(username, roomId).pipe(
+      tap(() => {
+        ctx.patchState({
+          status: EGameStatus.Initiated,
+        });
+        this.ngZone.run(() => this.router.navigate(['room', roomId]));
+      }),
+      map(() => roomId),
+    );
+
+  }
+
+  @Action(GameActions.StartGame)
+  startGame(
+    ctx: StateContext<GameStateModel>,
+  ) {
+
+    ctx.patchState({
+      status: EGameStatus.Started,
+    })
+
+  }
+
+  @Action(GameActions.AddPlayer)
+  addPlayer(
+    ctx: StateContext<GameStateModel>,
+    { player }: GameActions.AddPlayer
+  ) {
+
+    ctx.setState(
+      patch<GameStateModel>({
+        players: append<string>([player])
+      })
+    );
+  }
+
+  @Action(GameActions.SyncGame)
+  syncPlayer(
+    ctx: StateContext<GameStateModel>,
+    { gameState }: GameActions.SyncGame
+  ) {
+
+    ctx.patchState({
+      ...gameState
+    })
   }
 }
