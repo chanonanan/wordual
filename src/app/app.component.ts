@@ -1,15 +1,12 @@
-import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-root',
   template: `
-    <app-navbar *ngIf="router.url !== '/'"></app-navbar>
+    <app-navbar></app-navbar>
     <router-outlet></router-outlet>
   `,
   styleUrls: ['./app.component.less']
 })
 export class AppComponent {
-  title = 'worduel';
-  public router = inject(Router);
 }

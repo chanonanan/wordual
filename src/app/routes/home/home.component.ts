@@ -13,7 +13,7 @@ import { v4 as uuid } from 'uuid';
   imports: [AsyncPipe, NgIf],
   template: `
     <section class="home-section">
-      <h3>Wordual</h3>
+      <h3>Welcome to Wordual</h3>
       <section class="name-section section">
         <label for="name">Enter your name:</label>
         <input type="text" name="name" (keyup)="updateUsername($event)">
