@@ -18,9 +18,7 @@
       "src": "/api/.*",
       "dest": "backend/server.js"
     },
-    {
-      "src": "/(.*)",
-      "dest": "dist/worduel/$1"
-    }
+    { "handle": "filesystem" },
+    { "src": "/.*", "dest": "/index.html" }
   ]
 }
