@@ -13,7 +13,11 @@ import { Observable } from 'rxjs';
     <ng-container *ngIf="wordUsed$ | async as wordUsed">
       <div class="row" *ngFor="let row of rows">
         <div class="key" *ngFor="let key of row" (click)="onKeyTap(key)"
-        [ngClass]="{'found': wordUsed.has(key) && wordUsed.get(key), 'not-found': wordUsed.has(key) && !wordUsed.get(key)}">
+          [ngClass]="{
+            'found': wordUsed.has(key) && wordUsed.get(key),
+            'not-found': wordUsed.has(key) && !wordUsed.get(key),
+            'big-key': specialKeys.includes(key)
+          }">
           {{key | uppercase}}
         </div>
       </div>
@@ -34,6 +38,8 @@ export class KeyboardComponent {
     ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
     ['enter', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '←']
   ];
+
+  public readonly specialKeys = ['enter', '←'];
 
   private letters = this.rows.flat();
 

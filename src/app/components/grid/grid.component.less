@@ -3,13 +3,15 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
 
   .grid-container {
+    flex: 1;
     display: grid;
     grid-template-rows: repeat(6, 1fr);
     grid-gap: 5px;
     width: 350px;
-    height: 420px;
+    max-height: 420px;
     padding: 10px;
   }
 
