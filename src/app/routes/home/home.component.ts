@@ -22,7 +22,7 @@ import { v4 as uuid } from 'uuid';
         <input type="text" name="name" (keyup)="updateUsername($event)">
       </section>
       <section class="button-section section"*ngIf="{ isUsernameValid: isUsernameValid$ | async} as data" >
-        <button (click)="createRoom()" *ngIf="!room; else joinRoomTemplate" [disabled]="!data.isUsernameValid">Create room</button>
+        <button (click)="createRoom()" *ngIf="!roomId; else joinRoomTemplate" [disabled]="!data.isUsernameValid">Create room</button>
         <ng-template #joinRoomTemplate>
           <button (click)="joinRoom()" [disabled]="!data.isUsernameValid">Join room</button>
         </ng-template>
@@ -34,7 +34,7 @@ import { v4 as uuid } from 'uuid';
   standalone: true
 })
 export class HomeComponent implements OnInit {
-  @Input() room?: string;
+  @Input() roomId?: string;
   @Select(UserState.isUsernameValid) isUsernameValid$!: Observable<boolean>;
   @Select(UserState.username) username$!: Observable<string>;
 
@@ -55,7 +55,7 @@ export class HomeComponent implements OnInit {
   }
 
   joinRoom(): void {
-    this.store.dispatch(new GameActions.JoinGame(this.room as string));
+    this.store.dispatch(new GameActions.JoinGame(this.roomId as string));
   }
 
   updateUsername(event: Event): void {

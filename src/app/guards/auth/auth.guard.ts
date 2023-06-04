@@ -1,49 +1,59 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { GAME_STATUS, REQUEST_GAME_STATUS } from '@consts/channel.const';
+import { REQUEST_USERNAME_VALIDATION, USERNAME_VALIDATION_RESULT } from '@consts/channel.const';
+import { IPlayerJoinData, IUsernameValidation } from '@models/channel.model';
 import { EGameStatus } from '@models/game.model';
 import { Store } from '@ngxs/store';
 import { AblyService } from '@services/ably/ably.service';
-import { GameState } from '@stores/game/game.state';
+import { GameState, GameStateModel } from '@stores/game/game.state';
 import { UserState } from '@stores/user/user.state';
-import { TimeoutError, catchError, map, of, timeout } from 'rxjs';
+import { EMPTY, TimeoutError, catchError, map, of, switchMap, tap, timeout } from 'rxjs';
 
 export const AuthGuard: CanActivateFn = (route, state) => {
-  const store = inject(Store);
   const router = inject(Router);
-  const isUsernameValid = store.selectSnapshot(UserState.isUsernameValid);
-  const isHost = store.selectSnapshot(GameState.isHost);
-  console.log({isHost})
+  const store = inject(Store);
+  const ablyService = inject(AblyService);
 
-  const id = route.params['id'];
+  const { isHost, status } = store.selectSnapshot<GameStateModel>(GameState);
+  const roomId = route.queryParamMap.get('roomId');
+  const isAuthenicated = route.queryParamMap.get('isAuthenicated');
+  console.log({isHost, status, roomId});
 
-  if (!id) {
-    console.log({id})
+  if (!roomId) {
+    console.log({roomId})
     router.navigate(['']);
     return false;
   }
 
-  if (!isUsernameValid) {
-    console.log({isUsernameValid})
+  if (status < EGameStatus.Initiated) {
+    console.log({status})
     router.navigate([''], {
       queryParams: {
-        room: id
+        roomId,
       }
     });
     return false;
   }
 
-  if (isHost) {
+  if (isHost || isAuthenicated === 'true') {
     return true;
   }
 
+  return verifiedWithHost(ablyService, router, store);
+};
 
-  const ablyService = inject(AblyService);
-  ablyService.publish(REQUEST_GAME_STATUS, { player: store.selectSnapshot(UserState.username) });
-  return ablyService.subscribe<{ status: EGameStatus, isNameDuplicated: boolean }>(GAME_STATUS).pipe(
-    map(({ status, isNameDuplicated }) => {
-      if (isNameDuplicated) {
-        alert('Name duplicated!');
+const verifiedWithHost = (
+  ablyService: AblyService,
+  router: Router,
+  store: Store,
+) => {
+  const player = store.selectSnapshot(UserState.username);
+  return of(EMPTY).pipe(
+    tap(() => ablyService.publish<IPlayerJoinData>(REQUEST_USERNAME_VALIDATION, { player })),
+    switchMap(() => ablyService.subscribe<IUsernameValidation>(USERNAME_VALIDATION_RESULT)),
+    map(({ status, isValid }) => {
+      if (!isValid) {
+        alert('Name\'s duplicated!');
         return false;
       }
 

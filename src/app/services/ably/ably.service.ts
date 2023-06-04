@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { IBaseMessage } from '@models/channel.model';
 import { Realtime, Types } from 'ably';
 import { Observable, from, map, shareReplay, tap } from 'rxjs';
@@ -10,6 +11,7 @@ export class AblyService {
 
   public channel!: Types.RealtimeChannelCallbacks;
   private readonly baseAuthUrl: string = '/api/auth';
+  private route = inject(ActivatedRoute);
 
   getChannel(clientId: string, roomId: string): Observable<Types.RealtimeChannelCallbacks> {
     return this.generateClient(clientId).pipe(
@@ -19,6 +21,7 @@ export class AblyService {
   }
 
   subscribe<T>(eventName: string): Observable<T> {
+    console.log(this.route.snapshot.queryParamMap.get('roomId'))
     return new Observable<T>(observer => {
       this.channel.subscribe(eventName, (message: IBaseMessage<T>) => {
         observer.next(message.data);
@@ -28,6 +31,11 @@ export class AblyService {
 
   publish<T>(eventName: string, data: T): void {
     this.channel.publish(eventName, data);
+  }
+
+  unsubscribe(): void {
+    this.channel.unsubscribe();
+    this.channel.detach();
   }
 
   private generateClient(clientId: string): Observable<Realtime> {

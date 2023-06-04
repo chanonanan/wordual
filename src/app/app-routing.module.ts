@@ -9,12 +9,12 @@ const routes: Routes = [
     loadComponent: () => import('./routes/home/home.component').then(c => c.HomeComponent)
   },
   {
-    path: 'room/:id',
+    path: 'room',
     loadComponent: () => import('./routes/room/room.component').then(c => c.RoomComponent),
     canActivate: [AuthGuard]
   },
   {
-    path: 'game/:id',
+    path: 'game',
     loadComponent: () => import('./routes/game/game.component').then(c => c.GameComponent),
     canActivate: [AuthGuard]
   },

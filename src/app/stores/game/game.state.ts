@@ -175,7 +175,6 @@ export class GameState {
         ctx.patchState({
           status: EGameStatus.Initiated,
         });
-        this.ngZone.run(() => this.router.navigate(['room', roomId]));
       }),
       map(() => roomId),
     );
