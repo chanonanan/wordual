@@ -11,8 +11,8 @@ import { Observable } from 'rxjs';
   imports: [AsyncPipe, NgClass, NgIf, NgFor, UpperCasePipe],
   template: `
     <ng-container *ngIf="wordUsed$ | async as wordUsed">
-      <div class="row" *ngFor="let row of rows">
-        <div class="key" *ngFor="let key of row" (click)="onKeyTap(key)"
+      <div class="row" *ngFor="let row of rows; trackBy: trackByRow">
+        <div class="key" *ngFor="let key of row; trackBy: trackByKey" (click)="onKeyTap(key)"
           [ngClass]="{
             'found': wordUsed.has(key) && wordUsed.get(key),
             'not-found': wordUsed.has(key) && !wordUsed.get(key),
@@ -62,6 +62,14 @@ export class KeyboardComponent {
         this.store.dispatch(new GameActions.AddCharacter(key));
         break;
     }
+  }
+
+  trackByRow(index: number, row: string[]): string {
+    return index.toString();
+  }
+
+  trackByKey(index: number, key: string): string {
+    return key;
   }
 
 }

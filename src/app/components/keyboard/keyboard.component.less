@@ -31,8 +31,7 @@
       color: white;
       font-size: 1.25rem;
       border: var(--color-tone-2);
-      animation-duration: 0.3s;
-      animation-timing-function: ease;
+      transition: transform 0.3s ease;
 
       &.found {
         background-color: var(--present-color-tone);
@@ -48,16 +47,7 @@
       }
 
       &:active {
-        animation-name: moveDown;
+        transform: translateY(4px);
       }
     }
-}
-
-@keyframes moveDown {
-  0% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(10px);
-  }
 }
