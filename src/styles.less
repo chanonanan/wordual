@@ -15,6 +15,7 @@
   --present-color-tone: #b59f3b;
   --header-height: 65px;
   --keyboard-height: 200px;
+  --button-color: #555555;
 }
 
 html * {
@@ -26,7 +27,7 @@ html, body {
   width: 100%;
   margin: 0;
   font-family: HelveticaNeue-Light, Helvetica Neue Light, Helvetica Neue, Helvetica,Arial, Lucida Grande, sans-serif;
-  font-size: 1rem;
+  font-size: 16px;
   background-color: var(--color-tone-7);
   color: var(--color-tone-1);
 
@@ -76,4 +77,21 @@ html, body {
   &.error {
     background-color: #f44336;
   }
+}
+
+input, button {
+  font-size: inherit;
+}
+
+button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: none;
+  text-decoration: none;
+  display: inline-block;
+  background-color: var(--button-color);
+  color: white;
+  transition-duration: 0.4s;
+
 }
