@@ -21,11 +21,11 @@ import { v4 as uuid } from 'uuid';
   template: `
     <app-card>
       <h3 header>Welcome to Wordual</h3>
-      <section content>
-        <app-avatar [name]="username$ | async" />
+      <section content *ngIf="{ username: username$ | async } as data">
+        <app-avatar [name]="data.username" />
         <section class="name-section">
           <label for="name">Enter your name:</label>
-          <input type="text" name="name" (keyup)="updateUsername($event)">
+          <input type="text" name="name" [value]="data.username" (keyup)="updateUsername($event)">
         </section>
       </section>
       <button button (click)="roomId ? joinRoom() : createRoom()" [disabled]="!(isUsernameValid$ | async)">
@@ -43,7 +43,7 @@ export class HomeComponent implements OnInit {
 
   private store = inject(Store);
   private destroyRef = inject(DestroyRef);
-  private input$ = new BehaviorSubject<string>('');
+  private input$ = new BehaviorSubject<string>(this.store.selectSnapshot(UserState.username));
 
   ngOnInit(): void {
     this.resetGameState();
@@ -62,6 +62,7 @@ export class HomeComponent implements OnInit {
   }
 
   updateUsername(event: Event): void {
+    console.log('updateUsername');
     this.input$.next((event.target as HTMLInputElement).value);
   }
 

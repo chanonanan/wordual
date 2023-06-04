@@ -14,7 +14,7 @@ class UserStateModel {
 export class UserState {
   @Selector()
   public static username(state: UserStateModel): string {
-    return state.username;
+    return state.username || '';
   }
 
   @Selector([UserState.username])
