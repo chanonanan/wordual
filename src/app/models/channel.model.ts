@@ -18,3 +18,11 @@ export interface IUsernameValidation {
   status: EGameStatus;
   isValid: boolean;
 }
+
+export interface IRoomData {
+  host: string;
+  hostId: string;
+  players: string[];
+  roomId: string;
+  status: EGameStatus;
+}

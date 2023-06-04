@@ -1,12 +1,17 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { AuthGuard } from '@guards/auth/auth.guard';
+import { AuthGuard, UsernameGuard } from '@guards/auth/auth.guard';
 
 const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
     loadComponent: () => import('./routes/home/home.component').then(c => c.HomeComponent)
+  },
+  {
+    path: 'room-list',
+    loadComponent: () => import('./routes/room-list/room-list.component').then(c => c.RoomListComponent),
+    canActivate: [UsernameGuard]
   },
   {
     path: 'room',

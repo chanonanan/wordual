@@ -1,13 +1,14 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { PLAYER_JOIN, REQUEST_USERNAME_VALIDATION, SYNC_GAME, USERNAME_VALIDATION_RESULT } from '@consts/channel.const';
-import { IPlayerJoinData, ISyncGameData, IUsernameValidation } from '@models/channel.model';
+import { PLAYER_JOIN, REQUEST_ROOM_DATA, REQUEST_USERNAME_VALIDATION, ROOM_DATA_RESULT, SYNC_GAME, USERNAME_VALIDATION_RESULT } from '@consts/channel.const';
+import { IPlayerJoinData, IRoomData, ISyncGameData, IUsernameValidation } from '@models/channel.model';
 import { EGameStatus } from '@models/game.model';
 import { ActionCompletion, Actions, Store, ofActionCompleted } from '@ngxs/store';
 import { AblyService } from '@services/ably/ably.service';
 import { GameActions } from '@stores/game/game.action';
 import { GameState } from '@stores/game/game.state';
+import { RoomActions } from '@stores/room/room.action';
 import { UserState } from '@stores/user/user.state';
 import { WordState } from '@stores/word/word.state';
 import { Observable, OperatorFunction, combineLatest, filter, from, switchMap, tap } from 'rxjs';
@@ -29,11 +30,12 @@ export class AppComponent implements OnInit {
   private store = inject(Store);
 
   ngOnInit(): void {
-    this.hostEventHandler();
-    this.playerEventHandler();
+    this.createGameEventHandler();
+    this.joinGameEventHandler();
+    this.findGameEventHandler();
   }
 
-  private hostEventHandler(): void {
+  private createGameEventHandler(): void {
     const createGame$ = this.actions.pipe(
       takeUntilDestroyed(this.destroyRef),
       ofActionCompleted(GameActions.CreateGame)
@@ -41,7 +43,8 @@ export class AppComponent implements OnInit {
 
     // Subscribe to username validation requests
     createGame$.pipe(
-      this.afterNavigatedToRoomPage(),
+      this.afterNavigatedEnd<GameActions.CreateGame>('room'),
+      tap(() => this.boardcastRoomData()),
       switchMap(() => this.ablyService.subscribe<IPlayerJoinData>(REQUEST_USERNAME_VALIDATION))
     ).subscribe(({ player }) => {
       console.log(player, ' has request to join!');
@@ -65,11 +68,20 @@ export class AppComponent implements OnInit {
       ]))
     ).subscribe(([players, status, answer]) => {
       this.syncGameToOthers({ players, status, answer });
+      this.boardcastRoomData();
       this.checkGameStart(status, true);
+    });
+
+    // Subscribe to room list events
+    createGame$.pipe(
+      switchMap(() => this.ablyService.subscribeRoom<IPlayerJoinData>(REQUEST_ROOM_DATA))
+    ).subscribe(({ player }) => {
+      console.log(player, ' has request room data!');
+      this.boardcastRoomData();
     });
   }
 
-  private playerEventHandler(): void {
+  private joinGameEventHandler(): void {
     const joinGame$ = this.actions.pipe(
       takeUntilDestroyed(this.destroyRef),
       ofActionCompleted(GameActions.JoinGame)
@@ -77,12 +89,27 @@ export class AppComponent implements OnInit {
 
     // Subscribe to join game events
     joinGame$.pipe(
-      this.afterNavigatedToRoomPage(),
+      this.afterNavigatedEnd<GameActions.JoinGame>('room'),
       tap(() => this.publishPlayerJoinData()),
       switchMap(() => this.ablyService.subscribe<ISyncGameData>(SYNC_GAME))
     ).subscribe(data => {
       this.syncGame(data);
       this.checkGameStart(data.status, false);
+    });
+  }
+
+  private findGameEventHandler(): void {
+    const findGame$ = this.actions.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      ofActionCompleted(GameActions.FindGame)
+    );
+
+    findGame$.pipe(
+      this.afterNavigatedEnd<GameActions.FindGame>('room-list'),
+      tap(() => this.publishPlayerFindData()),
+      switchMap(() => this.ablyService.subscribeRoom<IRoomData>(ROOM_DATA_RESULT))
+    ).subscribe(data => {
+      this.store.dispatch(new RoomActions.SetRoomData(data));
     });
   }
 
@@ -100,12 +127,32 @@ export class AppComponent implements OnInit {
   private syncGameToOthers(data: ISyncGameData): void {
     this.ablyService.publish<ISyncGameData>(SYNC_GAME, data);
   }
+
+  private boardcastRoomData(): void {
+    const status = this.store.selectSnapshot(GameState.status);
+    const players = this.store.selectSnapshot(GameState.players);
+    const host = this.store.selectSnapshot(UserState.username);
+    const hostId = this.store.selectSnapshot(UserState.uuid);
+    const roomId = this.route.snapshot.queryParamMap.get('roomId') as string;
+    this.ablyService.publishRoom<IRoomData>(ROOM_DATA_RESULT, {
+      host,
+      hostId,
+      status,
+      players,
+      roomId,
+    });
+  }
   //#endregion
 
   //#region Player events
   private publishPlayerJoinData(): void {
     const player = this.store.selectSnapshot(UserState.username);
     this.ablyService.publish<IPlayerJoinData>(PLAYER_JOIN, { player });
+  }
+
+  private publishPlayerFindData(): void {
+    const player = this.store.selectSnapshot(UserState.username);
+    this.ablyService.publishRoom<IPlayerJoinData>(REQUEST_ROOM_DATA, { player });
   }
 
   private syncGame(data: ISyncGameData): void {
@@ -132,11 +179,15 @@ export class AppComponent implements OnInit {
     }
   }
 
-  private afterNavigatedToRoomPage(): OperatorFunction<ActionCompletion<GameActions.JoinGame, Error>, boolean> {
-    return (source: Observable<ActionCompletion<GameActions.JoinGame, Error>>): Observable<boolean> => {
+  private afterNavigatedEnd<T = GameActions.CreateGame | GameActions.JoinGame | GameActions.FindGame>(
+    page: string
+  ): OperatorFunction<ActionCompletion<T, Error>, boolean> {
+    return (source: Observable<ActionCompletion<T, Error>>): Observable<boolean> => {
         return source.pipe(
-          switchMap(({ action: { roomId } }) => from(this.router.navigate(['room'], {
-            queryParams: { roomId }
+          switchMap(({ action }) => from(this.router.navigate([page], {
+            ...((action as GameActions.JoinGame).roomId ? {
+              queryParams: { roomId: (action as GameActions.JoinGame).roomId }
+            } : {}),
           })).pipe(
             filter(Boolean)
           )),

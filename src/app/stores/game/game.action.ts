@@ -24,6 +24,10 @@ export namespace GameActions {
     constructor(public roomId: string) { }
   }
 
+  export class FindGame {
+    static readonly type = '[Game] Find Game';
+  }
+
   export class StartGame {
     static readonly type = '[Game] Start Game';
   }

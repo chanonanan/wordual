@@ -185,7 +185,7 @@ export class GameState {
       players: [username],
     });
 
-    return this.ablyService.getChannel(username, roomId).pipe(
+    return this.ablyService.generateClient(username, roomId).pipe(
       tap(() => {
         ctx.patchState({
           status: EGameStatus.Initiated,
@@ -203,7 +203,7 @@ export class GameState {
 
     const username = this.store.selectSnapshot(UserState.username);
 
-    return this.ablyService.getChannel(username, roomId).pipe(
+    return this.ablyService.generateClient(username, roomId).pipe(
       tap(() => {
         ctx.patchState({
           status: EGameStatus.Initiated,
@@ -211,6 +211,16 @@ export class GameState {
       }),
       map(() => roomId),
     );
+
+  }
+
+  @Action(GameActions.FindGame)
+  findRoom(
+    ctx: StateContext<GameStateModel>,
+  ) {
+
+    const username = this.store.selectSnapshot(UserState.username);
+    return this.ablyService.generateClient(username);
 
   }
 

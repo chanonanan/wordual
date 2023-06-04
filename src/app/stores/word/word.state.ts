@@ -61,12 +61,9 @@ export class WordState {
 
     const { words } = ctx.getState()
     const word = words[Math.floor(Math.random() * words.length)];
-    const setWords = new Set(words);
 
-    setWords.delete(word);
     ctx.patchState({
       word,
-      words: [...setWords],
     })
   }
 

@@ -17,10 +17,6 @@ import { Observable } from 'rxjs';
     <app-card>
       <h3 header>Waiting Room</h3>
       <div content>
-        <section class="link-section">
-          <input [value]="url" readonly>
-          <button (click)="copy()">Copy</button>
-        </section>
         <section class="player-section" *ngIf="player$ | async as players">
           <div class="player" *ngFor="let player of players">
             <app-avatar [name]="player"/>

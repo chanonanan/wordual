@@ -43,13 +43,33 @@ export const AuthGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  return verifiedWithHost(ablyService, router, store);
+  return verifiedWithHost(ablyService, router, store, roomId);
+};
+
+export const UsernameGuard: CanActivateFn = (route, state) => {
+  const router = inject(Router);
+  const store = inject(Store);
+  const isUsernameValid = store.selectSnapshot(UserState.isUsernameValid);
+
+  if (route.queryParamMap.get('isTest')) {
+    return true;
+  }
+
+  if (!isUsernameValid) {
+    console.log({isUsernameValid})
+    router.navigate(['']);
+    return false;
+  }
+
+
+  return true;
 };
 
 const verifiedWithHost = (
   ablyService: AblyService,
   router: Router,
   store: Store,
+  roomId: string,
 ) => {
   const player = store.selectSnapshot(UserState.username);
   return of(EMPTY).pipe(
@@ -58,6 +78,9 @@ const verifiedWithHost = (
     map(({ status, isValid }) => {
       if (!isValid) {
         alert('Name\'s duplicated!');
+        router.navigate([''], {
+          queryParams: { roomId }
+        });
         return false;
       }
 

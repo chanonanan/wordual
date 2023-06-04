@@ -28,9 +28,13 @@ import { v4 as uuid } from 'uuid';
           <input type="text" name="name" [value]="data.username" (keyup)="updateUsername($event)">
         </section>
       </section>
-      <button button (click)="roomId ? joinRoom() : createRoom()" [disabled]="!(isUsernameValid$ | async)">
-        {{ roomId ? 'Join Room' : 'Create Room' }}
-      </button>
+      <section button *ngIf="{ isUsernameValid: isUsernameValid$ | async } as data" class="button-section">
+        <!-- <button (click)="createRoom()" [disabled]="!data.isUsernameValid">Create Room</button> -->
+        <button button (click)="roomId ? joinRoom() : createRoom()" [disabled]="!data.isUsernameValid">
+          {{ roomId ? 'Join Room' : 'Create Room' }}
+        </button>
+        <button (click)="findRoom()" [disabled]="!data.isUsernameValid">Find Room</button>
+      </section>
     </app-card>
   `,
   styleUrls: ['./home.component.less'],
@@ -61,8 +65,11 @@ export class HomeComponent implements OnInit {
     this.store.dispatch(new GameActions.JoinGame(this.roomId as string));
   }
 
+  findRoom(): void {
+    this.store.dispatch(new GameActions.FindGame());
+  }
+
   updateUsername(event: Event): void {
-    console.log('updateUsername');
     this.input$.next((event.target as HTMLInputElement).value);
   }
 
