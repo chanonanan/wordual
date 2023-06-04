@@ -67,6 +67,7 @@ export class HomeComponent implements OnInit {
 
   private resetGameState(): void {
     this.store.reset({
+      ...this.store.snapshot(),
       [GameStateName]: {
         ...new GameStateModel()
       }

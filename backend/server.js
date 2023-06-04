@@ -2,6 +2,9 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const https = require('https');
+const fs = require('fs');
+const path = require('path');
+
 const httpsAgent = new https.Agent({
   rejectUnauthorized: false,
 });
@@ -79,6 +82,26 @@ app.get('/api/word', async (req, res) => {
     console.error('Error retrieving random word:', error);
     res.status(500).json({ message: 'Failed to retrieve random word', error });
   }
+});
+
+app.get('/api/words', (req, res) => {
+  fs.readFile(path.join(__dirname, 'filteredWords.json'), 'utf8', (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Failed to retrieve random word', err });
+      return;
+    }
+
+    try {
+      const words = JSON.parse(data);
+      console.log(`${words.length} words`)
+
+      res.json({ words });
+    } catch (error) {
+      console.error('Error parsing JSON:', error);
+      res.status(500).json({ message: 'Failed to retrieve random word', err });
+    }
+  });
 });
 
 app.listen(3000, () => {

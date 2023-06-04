@@ -23,7 +23,6 @@ import { Observable } from 'rxjs';
   styleUrls: ['./grid.component.less']
 })
 export class GridComponent {
-  @Select(GameState.word) public word!: Observable<string>;
   @Select(GameState.gridData) public gridData!: Observable<IGridData[][]>;
 
   getStatus(status: EGridStatus): string {

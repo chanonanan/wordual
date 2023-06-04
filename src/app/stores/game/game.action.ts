@@ -1,4 +1,4 @@
-import { GameStateModel } from '@stores/game/game.state';
+import { ISyncGameData } from '@models/channel.model';
 
 export namespace GameActions {
   export class AddCharacter {
@@ -35,6 +35,6 @@ export namespace GameActions {
 
   export class SyncGame {
     static readonly type = '[Game] Sync Game';
-    constructor(public gameState: Partial<GameStateModel>) { }
+    constructor(public syncData: ISyncGameData) { }
   }
 }

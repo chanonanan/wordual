@@ -9,6 +9,7 @@ import { AblyService } from '@services/ably/ably.service';
 import { GameActions } from '@stores/game/game.action';
 import { GameState } from '@stores/game/game.state';
 import { UserState } from '@stores/user/user.state';
+import { WordState } from '@stores/word/word.state';
 import { Observable, OperatorFunction, combineLatest, filter, from, switchMap, tap } from 'rxjs';
 
 @Component({
@@ -59,10 +60,11 @@ export class AppComponent implements OnInit {
     createGame$.pipe(
       switchMap(() => combineLatest([
         this.store.select(GameState.players),
-        this.store.select(GameState.status)
+        this.store.select(GameState.status),
+        this.store.select(WordState.word),
       ]))
-    ).subscribe(([players, status]) => {
-      this.syncGameToOthers(players, status);
+    ).subscribe(([players, status, answer]) => {
+      this.syncGameToOthers({ players, status, answer });
       this.checkGameStart(status, true);
     });
   }
@@ -95,8 +97,8 @@ export class AppComponent implements OnInit {
     this.store.dispatch(new GameActions.AddPlayer(player));
   }
 
-  private syncGameToOthers(players: string[], status: EGameStatus): void {
-    this.ablyService.publish<ISyncGameData>(SYNC_GAME, { players, status });
+  private syncGameToOthers(data: ISyncGameData): void {
+    this.ablyService.publish<ISyncGameData>(SYNC_GAME, data);
   }
   //#endregion
 

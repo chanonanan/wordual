@@ -1,18 +1,18 @@
-import { Injectable, NgZone, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Injectable, inject } from '@angular/core';
 import { EGameStatus } from '@models/game.model';
 import { EGridStatus, IGridData } from '@models/grid.model';
 import { Action, Selector, State, StateContext, Store } from '@ngxs/store';
 import { append, patch, removeItem } from '@ngxs/store/operators';
 import { AblyService } from '@services/ably/ably.service';
 import { UserState } from '@stores/user/user.state';
+import { WordActions } from '@stores/word/word.action';
+import { WordState } from '@stores/word/word.state';
 import { map, tap } from 'rxjs';
 import { GameActions } from './game.action';
 
 export class GameStateModel {
-  public answer: string = 'chano';
-  public word: string[] = [];
-  public histories: IGridData[][] = [];
+  public wordInput: string[] = [];
+  public histories: string[] = [];
   public isHost: boolean = false;
   public players: string[] = [];
   public status: EGameStatus = EGameStatus.NotInitiated;
@@ -27,17 +27,15 @@ export const GameStateName = 'GameState';
 @Injectable()
 export class GameState {
   private store = inject(Store);
-  private router = inject(Router);
   private ablyService = inject(AblyService);
-  private ngZone = inject(NgZone);
 
   @Selector()
-  public static word(state: GameStateModel): string[] {
-    return state.word;
+  public static wordInput(state: GameStateModel): string[] {
+    return state.wordInput;
   }
 
   @Selector()
-  public static histories(state: GameStateModel): IGridData[][] {
+  public static histories(state: GameStateModel): string[] {
     return state.histories;
   }
 
@@ -68,17 +66,24 @@ export class GameState {
     }, new Map<string, boolean>());
   }
 
-  @Selector([GameState.word, GameState.histories])
-  public static gridData(state: GameStateModel, word: string[], histories: IGridData[][]): IGridData[][] {
+  @Selector([GameState.wordInput, GameState.histories, WordState.word])
+  public static gridData(state: GameStateModel, wordInput: string[], histories: string[], answer: string): IGridData[][] {
     const emptyWord = Array.from({ length: 5 }, () => ({
       letter: '',
       status: EGridStatus.EMPTY
     }));
 
+
     const historiesWithCurrent = [
-      ...histories,
+      ...histories.map(history =>
+        [...history].map((letter, index) => ({
+          letter,
+          status: !answer.includes(letter) ? EGridStatus.NOT_IN_WORD :
+            (answer[index] === letter ? EGridStatus.RIGHT_POSITION : EGridStatus.WRONG_POSITION)
+        }))
+      ),
       Array.from({ length: 5 }, (_, index) => ({
-        letter: word[index] || '',
+        letter: wordInput[index] || '',
         status: EGridStatus.EMPTY
       }))
     ]
@@ -92,14 +97,14 @@ export class GameState {
     { character }: GameActions.AddCharacter,
   ) {
 
-    const { word } = ctx.getState();
-    if (word.length === 5) {
+    const { wordInput } = ctx.getState();
+    if (wordInput.length === 5) {
       return;
     }
 
     ctx.setState(
       patch<GameStateModel>({
-        word: append<string>([character])
+        wordInput: append<string>([character])
       })
     );
   }
@@ -111,7 +116,7 @@ export class GameState {
 
     ctx.setState(
       patch<GameStateModel>({
-        word: removeItem<string>(ctx.getState().word.length - 1)
+        wordInput: removeItem<string>(ctx.getState().wordInput.length - 1)
       })
     );
   }
@@ -121,21 +126,17 @@ export class GameState {
     ctx: StateContext<GameStateModel>,
   ) {
 
-    const { word, answer } = ctx.getState();
-    if (word.length < 5) {
+    const { wordInput } = ctx.getState();
+    if (wordInput.length < 5) {
       return;
     }
 
     ctx.setState(
       patch<GameStateModel>({
-        histories: append<IGridData[]>([
-          word.map((letter, index) => ({
-            letter,
-            status: !answer.includes(letter) ? EGridStatus.NOT_IN_WORD :
-              (answer[index] === letter ? EGridStatus.RIGHT_POSITION : EGridStatus.WRONG_POSITION)
-          }))
+        histories: append<string>([
+          wordInput.join('')
         ]),
-        word: [],
+        wordInput: [],
       })
     );
   }
@@ -190,6 +191,7 @@ export class GameState {
       status: EGameStatus.Started,
     })
 
+    return ctx.dispatch(new WordActions.GetNewWord());
   }
 
   @Action(GameActions.AddPlayer)
@@ -208,11 +210,14 @@ export class GameState {
   @Action(GameActions.SyncGame)
   syncPlayer(
     ctx: StateContext<GameStateModel>,
-    { gameState }: GameActions.SyncGame
+    { syncData: { status, players, answer } }: GameActions.SyncGame
   ) {
 
     ctx.patchState({
-      ...gameState
+      status,
+      players,
     })
+
+    this.store.dispatch(new WordActions.SetWord(answer));
   }
 }

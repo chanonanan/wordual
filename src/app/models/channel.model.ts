@@ -1,12 +1,15 @@
 import { EGameStatus } from '@models/game.model';
-import { GameStateModel } from '@stores/game/game.state';
 import { Types } from 'ably';
 
 export interface IBaseMessage<T> extends Types.Message {
   data: T;
 };
 
-export interface ISyncGameData extends Partial<GameStateModel> {};
+export interface ISyncGameData {
+  players: string[];
+  status: EGameStatus;
+  answer: string;
+};
 export interface IPlayerJoinData {
   player: string;
 };
