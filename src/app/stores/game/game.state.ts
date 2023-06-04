@@ -54,16 +54,40 @@ export class GameState {
     return state.status;
   }
 
-  @Selector([GameState.histories])
-  public static wordUsed(state: GameStateModel, histories: IGridData[][]): Map<string, boolean> {
-    const flattenedHistories = histories.flat();
-    return flattenedHistories.reduce((result: Map<string, boolean>, data: IGridData) => {
-      if (!result.get(data.letter)) {
-        result.set(data.letter, data.status !== EGridStatus.NOT_IN_WORD);
-      }
+  @Selector([GameState.histories, WordState.word])
+  public static wordUsed(state: GameStateModel, histories: string[], answer: string): Map<string, boolean> {
+    const map = new Map<string, boolean>();
 
-      return result;
-    }, new Map<string, boolean>());
+    [...new Set(histories.join(''))].forEach(letter => {
+      map.set(letter, answer.includes(letter))
+    });
+
+    return map;
+  }
+
+  @Selector([GameState.histories, WordState.word])
+  public static historiesDridData(state: GameStateModel, wordInput: string[], histories: string[], answer: string): IGridData[][] {
+    const emptyWord = Array.from({ length: 5 }, () => ({
+      letter: '',
+      status: EGridStatus.EMPTY
+    }));
+
+
+    const historiesWithCurrent = [
+      ...histories.map(history =>
+        [...history].map((letter, index) => ({
+          letter,
+          status: !answer.includes(letter) ? EGridStatus.NOT_IN_WORD :
+            (answer[index] === letter ? EGridStatus.RIGHT_POSITION : EGridStatus.WRONG_POSITION)
+        }))
+      ),
+      Array.from({ length: 5 }, (_, index) => ({
+        letter: wordInput[index] || '',
+        status: EGridStatus.EMPTY
+      }))
+    ]
+
+    return Array.from({ length: 6 }, (_, index) => historiesWithCurrent[index] || emptyWord);
   }
 
   @Selector([GameState.wordInput, GameState.histories, WordState.word])
@@ -128,6 +152,14 @@ export class GameState {
 
     const { wordInput } = ctx.getState();
     if (wordInput.length < 5) {
+      alert('Word\'s least than 5 letters!');
+      return;
+    }
+
+    const wordsSet = this.store.selectSnapshot(WordState.wordsSet);
+
+    if (!wordsSet.has(wordInput.join(''))) {
+      alert('Word not found!');
       return;
     }
 

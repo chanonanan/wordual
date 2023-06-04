@@ -29,6 +29,11 @@ export class WordState {
     return state.words;
   }
 
+  @Selector([WordState.words])
+  public static wordsSet(state: WordStateModel, words: string[]): Set<string> {
+    return new Set(words);
+  }
+
   @Action(WordActions.SetWords)
   setWords(
     ctx: StateContext<WordStateModel>,
