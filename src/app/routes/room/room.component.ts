@@ -1,6 +1,7 @@
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { Component, Input, inject } from '@angular/core';
 import { AvatarComponent } from '@components/avatar/avatar.component';
+import { CardComponent } from '@components/card/card.component';
 import { Select, Store } from '@ngxs/store';
 import { GameActions } from '@stores/game/game.action';
 import { GameState } from '@stores/game/game.state';
@@ -8,21 +9,27 @@ import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-room',
-  imports: [AsyncPipe, AvatarComponent, NgIf, NgFor],
+  host: {
+    class:'main-panel'
+  },
+  imports: [AsyncPipe, AvatarComponent, NgIf, NgFor, CardComponent],
   template: `
-    <section class="link-section">
-      <input [value]="url" readonly>
-      <button (click)="copy()">Copy</button>
-    </section>
-    <section class="player-section" *ngIf="player$ | async as players">
-      <div class="player" *ngFor="let player of players">
-        <app-avatar [name]="player"/>
-        <span>{{ player }}</span>
+    <app-card>
+      <h3 header>Waiting Room</h3>
+      <div content>
+        <section class="link-section">
+          <input [value]="url" readonly>
+          <button (click)="copy()">Copy</button>
+        </section>
+        <section class="player-section" *ngIf="player$ | async as players">
+          <div class="player" *ngFor="let player of players">
+            <app-avatar [name]="player"/>
+            <span>{{ player }}</span>
+          </div>
+        </section>
       </div>
-    </section>
-    <section class="start-section" *ngIf="isHost$ | async">
-      <button (click)="start()">Start</button>
-    </section>
+      <button button (click)="start()" *ngIf="isHost$ | async">Start</button>
+    </app-card>
 
   `,
   styleUrls: ['./room.component.less'],

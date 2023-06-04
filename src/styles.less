@@ -19,7 +19,6 @@
 
 html * {
   box-sizing: border-box;
-  touch-action: none;
 }
 
 html, body {
@@ -34,4 +33,17 @@ html, body {
   &[theme^="dark"] {
 
   }
+}
+
+.main-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  gap: 10px;
+  margin: 0 auto;
+  max-width: 500px;
+  width: 100%;
+  padding: 10px;
+  justify-content: center;
 }

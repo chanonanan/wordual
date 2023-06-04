@@ -4,10 +4,13 @@ import { KeyboardComponent } from "@components/keyboard/keyboard.component";
 
 @Component({
     selector: 'app-game',
+    host: {
+      class:'main-panel'
+    },
     template: `
-    <app-grid></app-grid>
-    <app-keyboard></app-keyboard>
-  `,
+      <app-grid></app-grid>
+      <app-keyboard/>
+    `,
     styleUrls: ['./game.component.less'],
     standalone: true,
     imports: [KeyboardComponent, GridComponent]

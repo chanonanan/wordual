@@ -2,6 +2,8 @@ import { AsyncPipe, NgIf } from '@angular/common';
 import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AvatarComponent } from '@components/avatar/avatar.component';
+import { CardComponent } from '@components/card/card.component';
+import { KeyboardComponent } from '@components/keyboard/keyboard.component';
 import { Select, Store } from '@ngxs/store';
 import { GameActions } from '@stores/game/game.action';
 import { GameStateModel, GameStateName } from '@stores/game/game.state';
@@ -12,23 +14,24 @@ import { v4 as uuid } from 'uuid';
 
 @Component({
   selector: 'app-home',
-  imports: [AsyncPipe, NgIf, AvatarComponent],
+  host: {
+    class:'main-panel'
+  },
+  imports: [AsyncPipe, NgIf, AvatarComponent, KeyboardComponent, CardComponent],
   template: `
-    <section class="home-section">
-      <h3>Welcome to Wordual</h3>
-      <app-avatar [name]="username$ | async" />
-      <section class="name-section section">
-        <label for="name">Enter your name:</label>
-        <input type="text" name="name" (keyup)="updateUsername($event)">
+    <app-card>
+      <h3 header>Welcome to Wordual</h3>
+      <section content>
+        <app-avatar [name]="username$ | async" />
+        <section class="name-section">
+          <label for="name">Enter your name:</label>
+          <input type="text" name="name" (keyup)="updateUsername($event)">
+        </section>
       </section>
-      <section class="button-section section"*ngIf="{ isUsernameValid: isUsernameValid$ | async} as data" >
-        <button (click)="createRoom()" *ngIf="!roomId; else joinRoomTemplate" [disabled]="!data.isUsernameValid">Create room</button>
-        <ng-template #joinRoomTemplate>
-          <button (click)="joinRoom()" [disabled]="!data.isUsernameValid">Join room</button>
-        </ng-template>
-      </section>
-    </section>
-
+      <button button (click)="roomId ? joinRoom() : createRoom()" [disabled]="!(isUsernameValid$ | async)">
+        {{ roomId ? 'Join Room' : 'Create Room' }}
+      </button>
+    </app-card>
   `,
   styleUrls: ['./home.component.less'],
   standalone: true

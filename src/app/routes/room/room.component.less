@@ -1,12 +1,14 @@
 section {
   display: flex;
   flex-direction: row;
-  margin: 0 10px;
 
   &.link-section {
     input {
       flex-grow: 2;
-      border: none;
+      border-right: 0px;
+      border-width: 1px;
+      line-height: 2rem;
+      padding: 0 10px;
       line-height: 2rem;
 
       &:focus {
@@ -14,26 +16,15 @@ section {
       }
     }
 
-    input:focus {
-      outline: none;
-    }
-
     button {
-
+      cursor: pointer;
     }
-  }
 
-  &.start-section {
-    button {
-      flex: 1;
-      line-height: 2rem;
-    }
   }
 
   &.player-section {
     display: flex;
     flex-direction: row;
-    margin: 0 10px;
     flex-wrap: wrap;
     justify-content: space-between;
 
