@@ -1,5 +1,10 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
+const https = require('https');
+const httpsAgent = new https.Agent({
+  rejectUnauthorized: false,
+});
 
 const app = express();
 
@@ -48,6 +53,32 @@ app.get('/api/auth', (req, res) => {
     console.log(': Sending signed JWT token back to client:\n%s', tokenId);
     res.send(JSON.stringify(tokenId));
   });
+});
+
+app.get('/api/word', async (req, res) => {
+  try {
+    const url = new URL('https://wordsapiv1.p.rapidapi.com/words');
+    url.searchParams.set('random', 'true');
+    url.searchParams.set('letters', '5');
+    url.searchParams.set('hasDetails', 'definitions');
+    const response = await axios.get(url, {
+      httpsAgent,
+      headers: {
+        'X-RapidAPI-Key': process.env.RAPID_API_KEY,
+        'X-RapidAPI-Host': 'wordsapiv1.p.rapidapi.com'
+      }
+    });
+
+    console.log(response.data)
+
+    res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    res.setHeader('Content-Type', 'application/json');
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error retrieving random word:', error);
+    res.status(500).json({ message: 'Failed to retrieve random word', error });
+  }
 });
 
 app.listen(3000, () => {
