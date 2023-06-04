@@ -6,6 +6,7 @@ import { IPlayerJoinData, IRoomData, ISyncGameData, IUsernameValidation } from '
 import { EGameStatus } from '@models/game.model';
 import { ActionCompletion, Actions, Store, ofActionCompleted } from '@ngxs/store';
 import { AblyService } from '@services/ably/ably.service';
+import { ToastService } from '@services/toast/toast.service';
 import { GameActions } from '@stores/game/game.action';
 import { GameState } from '@stores/game/game.state';
 import { RoomActions } from '@stores/room/room.action';
@@ -28,6 +29,7 @@ export class AppComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private store = inject(Store);
+  private toast = inject(ToastService);
 
   ngOnInit(): void {
     this.createGameEventHandler();
@@ -172,7 +174,7 @@ export class AppComponent implements OnInit {
         if (isHost) {
           return;
         }
-        alert('Host has left the game!');
+        this.toast.showToast('Host has left the game!', 'error');
         this.ablyService.unsubscribe();
         this.router.navigate(['']);
         break;

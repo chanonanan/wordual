@@ -4,6 +4,7 @@ import { EGridStatus, IGridData } from '@models/grid.model';
 import { Action, Selector, State, StateContext, Store } from '@ngxs/store';
 import { append, patch, removeItem } from '@ngxs/store/operators';
 import { AblyService } from '@services/ably/ably.service';
+import { ToastService } from '@services/toast/toast.service';
 import { UserState } from '@stores/user/user.state';
 import { WordActions } from '@stores/word/word.action';
 import { WordState } from '@stores/word/word.state';
@@ -28,6 +29,7 @@ export const GameStateName = 'GameState';
 export class GameState {
   private store = inject(Store);
   private ablyService = inject(AblyService);
+  private toast = inject(ToastService);
 
   @Selector()
   public static wordInput(state: GameStateModel): string[] {
@@ -152,14 +154,14 @@ export class GameState {
 
     const { wordInput } = ctx.getState();
     if (wordInput.length < 5) {
-      alert('Word\'s least than 5 letters!');
+      this.toast.showToast('Word\'s least than 5 letters!', 'error');
       return;
     }
 
     const wordsSet = this.store.selectSnapshot(WordState.wordsSet);
 
     if (!wordsSet.has(wordInput.join(''))) {
-      alert('Word not found!');
+      this.toast.showToast('Word not found!', 'error');
       return;
     }
 

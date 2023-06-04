@@ -5,6 +5,7 @@ import { IPlayerJoinData, IUsernameValidation } from '@models/channel.model';
 import { EGameStatus } from '@models/game.model';
 import { Store } from '@ngxs/store';
 import { AblyService } from '@services/ably/ably.service';
+import { ToastService } from '@services/toast/toast.service';
 import { GameState, GameStateModel } from '@stores/game/game.state';
 import { UserState } from '@stores/user/user.state';
 import { EMPTY, TimeoutError, catchError, map, of, switchMap, tap, timeout } from 'rxjs';
@@ -13,6 +14,7 @@ export const AuthGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
   const store = inject(Store);
   const ablyService = inject(AblyService);
+  const toast = inject(ToastService);
 
   const { isHost, status } = store.selectSnapshot<GameStateModel>(GameState);
   const roomId = route.queryParamMap.get('roomId');
@@ -43,7 +45,7 @@ export const AuthGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  return verifiedWithHost(ablyService, router, store, roomId);
+  return verifiedWithHost(ablyService, router, store, toast, roomId);
 };
 
 export const UsernameGuard: CanActivateFn = (route, state) => {
@@ -69,6 +71,7 @@ const verifiedWithHost = (
   ablyService: AblyService,
   router: Router,
   store: Store,
+  toast: ToastService,
   roomId: string,
 ) => {
   const player = store.selectSnapshot(UserState.username);
@@ -77,7 +80,7 @@ const verifiedWithHost = (
     switchMap(() => ablyService.subscribe<IUsernameValidation>(USERNAME_VALIDATION_RESULT)),
     map(({ status, isValid }) => {
       if (!isValid) {
-        alert('Name\'s duplicated!');
+        toast.showToast('Name\'s duplicated!', 'error');
         router.navigate([''], {
           queryParams: { roomId }
         });
@@ -85,7 +88,7 @@ const verifiedWithHost = (
       }
 
       if (status === EGameStatus.Started) {
-        alert('Game\'s already started!');
+        toast.showToast('Game\'s already started!', 'error');
         router.navigate(['']);
         return false;
       }
@@ -96,7 +99,7 @@ const verifiedWithHost = (
     catchError(error => {
       console.error(error)
       if (error instanceof TimeoutError) {
-        alert('Game not found!');
+        toast.showToast('Game not found!', 'error');
         router.navigate(['']);
       }
       return of(false);
