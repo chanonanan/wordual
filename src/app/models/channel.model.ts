@@ -1,4 +1,4 @@
-import { EGameStatus } from '@models/game.model';
+import { EGameStatus, ERoundStatus } from '@models/game.model';
 import { Types } from 'ably';
 
 export interface IBaseMessage<T> extends Types.Message {
@@ -6,23 +6,25 @@ export interface IBaseMessage<T> extends Types.Message {
 };
 
 export interface ISyncGameData {
-  players: string[];
+  players: IPlayerData[];
   status: EGameStatus;
   answer: string;
 };
-export interface IPlayerJoinData {
-  player: string;
+export interface IPlayerData {
+  uuid: string;
+  name: string;
+  roundStatus: ERoundStatus;
 };
 
 export interface IUsernameValidation {
   status: EGameStatus;
-  isValid: boolean;
+  isValidName: boolean;
 }
 
 export interface IRoomData {
   host: string;
   hostId: string;
-  players: string[];
+  players: IPlayerData[];
   roomId: string;
   status: EGameStatus;
 }

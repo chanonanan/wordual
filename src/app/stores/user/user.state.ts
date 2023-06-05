@@ -1,11 +1,13 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
+import { AblyService } from '@services/ably/ably.service';
+import { first } from 'rxjs';
 import { v4 } from 'uuid';
 import { UserActions } from './user.action';
 
 class UserStateModel {
   public username!: string;
-  public uuid!: string;
+  public uuid: string = v4();
 };
 
 @State<UserStateModel>({
@@ -14,6 +16,8 @@ class UserStateModel {
 })
 @Injectable()
 export class UserState {
+  private ablyService = inject(AblyService);
+
   @Selector()
   public static username(state: UserStateModel): string {
     return state.username || '';
@@ -41,7 +45,12 @@ export class UserState {
 
     ctx.patchState({
       username,
-      uuid: v4()
     })
+  }
+
+  ngxsAfterBootstrap(ctx: StateContext<UserStateModel>) {
+    this.ablyService.generateClient(ctx.getState().uuid).pipe(
+      first()
+    ).subscribe();
   }
 }

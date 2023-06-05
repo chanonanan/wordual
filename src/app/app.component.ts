@@ -2,7 +2,7 @@ import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PLAYER_JOIN, REQUEST_ROOM_DATA, REQUEST_USERNAME_VALIDATION, ROOM_DATA_RESULT, SYNC_GAME, USERNAME_VALIDATION_RESULT } from '@consts/channel.const';
-import { IPlayerJoinData, IRoomData, ISyncGameData, IUsernameValidation } from '@models/channel.model';
+import { IPlayerData, IRoomData, ISyncGameData, IUsernameValidation } from '@models/channel.model';
 import { EGameStatus } from '@models/game.model';
 import { ActionCompletion, Actions, Store, ofActionCompleted } from '@ngxs/store';
 import { AblyService } from '@services/ably/ably.service';
@@ -12,6 +12,7 @@ import { GameState } from '@stores/game/game.state';
 import { RoomActions } from '@stores/room/room.action';
 import { UserState } from '@stores/user/user.state';
 import { WordState } from '@stores/word/word.state';
+import { PlayerUtil } from '@utils/player.util';
 import { Observable, OperatorFunction, combineLatest, filter, from, switchMap, tap } from 'rxjs';
 
 @Component({
@@ -30,6 +31,7 @@ export class AppComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private store = inject(Store);
   private toast = inject(ToastService);
+  private playerUtil = inject(PlayerUtil);
 
   ngOnInit(): void {
     this.createGameEventHandler();
@@ -47,17 +49,17 @@ export class AppComponent implements OnInit {
     createGame$.pipe(
       this.afterNavigatedEnd<GameActions.CreateGame>('room'),
       tap(() => this.boardcastRoomData()),
-      switchMap(() => this.ablyService.subscribe<IPlayerJoinData>(REQUEST_USERNAME_VALIDATION))
-    ).subscribe(({ player }) => {
-      console.log(player, ' has request to join!');
+      switchMap(() => this.ablyService.subscribe<IPlayerData>(REQUEST_USERNAME_VALIDATION))
+    ).subscribe(player => {
+      console.log(player.name, ' has request to join!');
       this.handleUsernameValidation(player);
     });
 
     // Subscribe to player join events
     createGame$.pipe(
-      switchMap(() => this.ablyService.subscribe<IPlayerJoinData>(PLAYER_JOIN))
-    ).subscribe(({ player }) => {
-      console.log(player, ' has joined!');
+      switchMap(() => this.ablyService.subscribe<IPlayerData>(PLAYER_JOIN))
+    ).subscribe(player => {
+      console.log(player.name, ' has joined!');
       this.addPlayerToGame(player);
     });
 
@@ -76,9 +78,9 @@ export class AppComponent implements OnInit {
 
     // Subscribe to room list events
     createGame$.pipe(
-      switchMap(() => this.ablyService.subscribeRoom<IPlayerJoinData>(REQUEST_ROOM_DATA))
-    ).subscribe(({ player }) => {
-      console.log(player, ' has request room data!');
+      switchMap(() => this.ablyService.subscribeRoom<IPlayerData>(REQUEST_ROOM_DATA))
+    ).subscribe(({ name }) => {
+      console.log(name, ' has request room data!');
       this.boardcastRoomData();
     });
   }
@@ -116,13 +118,14 @@ export class AppComponent implements OnInit {
   }
 
   //#region Host events
-  private handleUsernameValidation(player: string): void {
+  private handleUsernameValidation(newPlayer: IPlayerData): void {
     const status = this.store.selectSnapshot(GameState.status);
     const players = this.store.selectSnapshot(GameState.players);
-    this.ablyService.publish<IUsernameValidation>(USERNAME_VALIDATION_RESULT, { status, isValid: !players.includes(player) });
+    const isValidName = !players.find(player => player.name === newPlayer.name);
+    this.ablyService.publish<IUsernameValidation>(USERNAME_VALIDATION_RESULT, { status, isValidName });
   }
 
-  private addPlayerToGame(player: string): void {
+  private addPlayerToGame(player: IPlayerData): void {
     this.store.dispatch(new GameActions.AddPlayer(player));
   }
 
@@ -148,13 +151,11 @@ export class AppComponent implements OnInit {
 
   //#region Player events
   private publishPlayerJoinData(): void {
-    const player = this.store.selectSnapshot(UserState.username);
-    this.ablyService.publish<IPlayerJoinData>(PLAYER_JOIN, { player });
+    this.ablyService.publish<IPlayerData>(PLAYER_JOIN, this.playerUtil.getPlayerData());
   }
 
   private publishPlayerFindData(): void {
-    const player = this.store.selectSnapshot(UserState.username);
-    this.ablyService.publishRoom<IPlayerJoinData>(REQUEST_ROOM_DATA, { player });
+    this.ablyService.publishRoom<IPlayerData>(REQUEST_ROOM_DATA, this.playerUtil.getPlayerData());
   }
 
   private syncGame(data: ISyncGameData): void {
@@ -174,7 +175,7 @@ export class AppComponent implements OnInit {
         if (isHost) {
           return;
         }
-        this.toast.showToast('Host has left the game!', 'error');
+        this.toast.showToast(`Host has left the game!`, 'error');
         this.ablyService.unsubscribe();
         this.router.navigate(['']);
         break;

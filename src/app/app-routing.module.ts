@@ -1,12 +1,13 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { AuthGuard, UsernameGuard } from '@guards/auth/auth.guard';
+import { GameStatusGuard, HomeGuard, QueryParamsGuard, RoomConnectionGuard, UsernameGuard } from '@guards/auth/auth.guard';
 
 const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    loadComponent: () => import('./routes/home/home.component').then(c => c.HomeComponent)
+    loadComponent: () => import('./routes/home/home.component').then(c => c.HomeComponent),
+    canActivate: [HomeGuard]
   },
   {
     path: 'room-list',
@@ -16,12 +17,12 @@ const routes: Routes = [
   {
     path: 'room',
     loadComponent: () => import('./routes/room/room.component').then(c => c.RoomComponent),
-    canActivate: [AuthGuard]
+    canActivate: [QueryParamsGuard, UsernameGuard, GameStatusGuard, RoomConnectionGuard]
   },
   {
     path: 'game',
     loadComponent: () => import('./routes/game/game.component').then(c => c.GameComponent),
-    canActivate: [AuthGuard]
+    canActivate: [QueryParamsGuard, UsernameGuard, GameStatusGuard, RoomConnectionGuard]
   },
   {
     path: '**',

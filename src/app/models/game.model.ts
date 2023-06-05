@@ -4,3 +4,9 @@ export enum EGameStatus {
   Started,
   Finished,
 }
+
+export enum ERoundStatus {
+  NotComplete,
+  Lose,
+  Win,
+}
