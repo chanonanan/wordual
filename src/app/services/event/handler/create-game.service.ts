@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { PLAYER_JOIN, REQUEST_ROOM_DATA, REQUEST_USERNAME_VALIDATION, ROOM_DATA_RESULT, SYNC_GAME, USERNAME_VALIDATION_RESULT } from '@consts/channel.const';
+import { REQUEST_ROOM_DATA, REQUEST_USERNAME_VALIDATION, ROOM_DATA_RESULT, SYNC_GAME, UPDATE_PLAYER_DATA, USERNAME_VALIDATION_RESULT } from '@consts/channel.const';
 import { IPlayerData, IRoomData, ISyncGameData, IUsernameValidation } from '@models/channel.model';
 import { ActionCompletion, ofActionCompleted } from '@ngxs/store';
 import { BaseEventHandlerService } from '@services/event/handler/base-handler.srevice';
 import { GameActions } from '@stores/game/game.action';
 import { GameState } from '@stores/game/game.state';
 import { WordState } from '@stores/word/word.state';
-import { Observable, combineLatest, switchMap } from 'rxjs';
+import { Observable, combineLatest, debounceTime, switchMap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class CreateGameEventHandlerService extends BaseEventHandlerService {
@@ -21,9 +21,10 @@ export class CreateGameEventHandlerService extends BaseEventHandlerService {
 
     this.afterNavigation();
     this.usernameValidation();
-    this.playerJoin();
+    this.playersData();
     this.gameStateChange();
     this.roomData();
+    this.playersData();
   }
 
   private afterNavigation() {
@@ -41,17 +42,17 @@ export class CreateGameEventHandlerService extends BaseEventHandlerService {
       console.log(newPlayer.name, ' has request to join!');
       const status = this.store.selectSnapshot(GameState.status);
       const players = this.store.selectSnapshot(GameState.players);
-      const isValidName = !players.find(player => player.name === newPlayer.name);
+      const isValidName = !players.find(player => player.name === newPlayer.name && player.uuid !== player.uuid);
       this.ablyService.publish<IUsernameValidation>(USERNAME_VALIDATION_RESULT, { status, isValidName });
     });
   }
 
-  private playerJoin() {
+  private playersData() {
     this.createGame$.pipe(
-      switchMap(() => this.ablyService.subscribe<IPlayerData>(PLAYER_JOIN))
+      switchMap(() => this.ablyService.subscribe<IPlayerData>(UPDATE_PLAYER_DATA))
     ).subscribe(player => {
-      console.log(player.name, ' has joined!');
-      this.store.dispatch(new GameActions.AddPlayer(player));
+      console.log(player.name, ' has sync!');
+      this.store.dispatch(new GameActions.SyncPlayer(player));
     });
   }
 
@@ -61,7 +62,7 @@ export class CreateGameEventHandlerService extends BaseEventHandlerService {
         this.store.select(GameState.players),
         this.store.select(GameState.status),
         this.store.select(WordState.word),
-      ]))
+      ]).pipe(debounceTime(300)))
     ).subscribe(([players, status, answer]) => {
       this.ablyService.publish<ISyncGameData>(SYNC_GAME, { players, status, answer });
       this.boardcastRoomData();

@@ -77,12 +77,13 @@ export const RoomConnectionGuard: CanActivateFn = (route, state) => {
   const store = inject(Store);
   const roomId = route.queryParamMap.get('roomId');
   const { isHost } = store.selectSnapshot<GameStateModel>(GameState);
+  const isAuthenicated = route.queryParamMap.get('isAuthenicated') === 'true';
 
   if (!roomId) {
     return false;
   }
 
-  return isHost || verifiedWithHost({ ablyService, playerUtil, toast, router }, roomId);
+  return isHost || isAuthenicated || verifiedWithHost({ ablyService, playerUtil, toast, router }, roomId);
 };
 
 export const HomeGuard: CanActivateFn = (route, state) => {

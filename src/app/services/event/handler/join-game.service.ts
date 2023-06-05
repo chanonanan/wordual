@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { PLAYER_JOIN, SYNC_GAME } from '@consts/channel.const';
+import { SYNC_GAME, UPDATE_PLAYER_DATA } from '@consts/channel.const';
 import { IPlayerData, ISyncGameData } from '@models/channel.model';
 import { ActionCompletion, ofActionCompleted } from '@ngxs/store';
 import { BaseEventHandlerService } from '@services/event/handler/base-handler.srevice';
 import { GameActions } from '@stores/game/game.action';
+import { GameState } from '@stores/game/game.state';
 import { Observable, switchMap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -18,10 +19,19 @@ export class JoinGameEventHandlerService extends BaseEventHandlerService {
     );
 
     this.afterNavigation();
-    this.syncGame();
+    this.syncGameFromHost();
+    this.updatePlayerStatus();
   }
 
-  private syncGame(): void {
+  private afterNavigation() {
+    this.joinGame$.pipe(
+      this.afterNavigatedEnd<GameActions.JoinGame>('room'),
+    ).subscribe(() => {
+      this.publishPlayerData();
+    });
+  }
+
+  private syncGameFromHost(): void {
     this.joinGame$.pipe(
       switchMap(() => this.ablyService.subscribe<ISyncGameData>(SYNC_GAME))
     ).subscribe(data => {
@@ -30,11 +40,15 @@ export class JoinGameEventHandlerService extends BaseEventHandlerService {
     });
   }
 
-  private afterNavigation() {
+  private updatePlayerStatus(): void {
     this.joinGame$.pipe(
-      this.afterNavigatedEnd<GameActions.JoinGame>('room'),
+      switchMap(() => this.store.select(GameState.roundStatus))
     ).subscribe(() => {
-      this.ablyService.publish<IPlayerData>(PLAYER_JOIN, this.playerUtil.getPlayerData());
+      this.publishPlayerData();
     });
+  }
+
+  private publishPlayerData(): void {
+    this.ablyService.publish<IPlayerData>(UPDATE_PLAYER_DATA, this.playerUtil.getPlayerData());
   }
 }

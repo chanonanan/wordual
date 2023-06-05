@@ -32,13 +32,17 @@ export namespace GameActions {
     static readonly type = '[Game] Start Game';
   }
 
-  export class AddPlayer {
-    static readonly type = '[Game] Add Player';
+  export class SyncPlayer {
+    static readonly type = '[Game] Sync Player';
     constructor(public player: IPlayerData) { }
   }
 
   export class SyncGame {
     static readonly type = '[Game] Sync Game';
     constructor(public syncData: ISyncGameData) { }
+  }
+
+  export class NewGame {
+    static readonly type = '[Game] New Game';
   }
 }

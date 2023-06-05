@@ -3,7 +3,7 @@ import { IPlayerData } from '@models/channel.model';
 import { EGameStatus, ERoundStatus } from '@models/game.model';
 import { EGridStatus, IGridData } from '@models/grid.model';
 import { Action, Selector, State, StateContext, Store } from '@ngxs/store';
-import { append, patch, removeItem } from '@ngxs/store/operators';
+import { append, iif, patch, removeItem, updateItem } from '@ngxs/store/operators';
 import { AblyService } from '@services/ably/ably.service';
 import { ToastService } from '@services/toast/toast.service';
 import { UserState } from '@stores/user/user.state';
@@ -19,7 +19,6 @@ export class GameStateModel {
   public isHost: boolean = false;
   public players: IPlayerData[] = [];
   public status: EGameStatus = EGameStatus.NotInitiated;
-  public roundStatus: ERoundStatus = ERoundStatus.NotComplete;
 };
 
 export const GameStateName = 'GameState';
@@ -58,11 +57,6 @@ export class GameState {
   @Selector()
   public static status(state: GameStateModel): EGameStatus {
     return state.status;
-  }
-
-  @Selector()
-  public static roundStatus(state: GameStateModel): ERoundStatus {
-    return state.roundStatus;
   }
 
   @Selector([GameState.histories, WordState.word])
@@ -139,6 +133,24 @@ export class GameState {
     return Array.from({ length: 6 }, (_, index) => historiesWithCurrent[index] || emptyWord);
   }
 
+  @Selector([GameState.players, UserState.uuid])
+  public static player(state: GameStateModel, players: IPlayerData[], uuid: string): IPlayerData | undefined {
+    return players.find(player => player.uuid === uuid);
+  }
+
+  @Selector([GameState.player])
+  public static roundStatus(state: GameStateModel, player: IPlayerData): ERoundStatus {
+    return player?.roundStatus;
+  }
+
+  @Selector([GameState.players])
+  public static roundWinner(state: GameStateModel, players: IPlayerData[]): string {
+    if (players.every(player => player.roundStatus === ERoundStatus.Lose)) {
+      return 'No player win this round!';
+    }
+    return players.find(player => player.roundStatus === ERoundStatus.Win)?.name || '';
+  }
+
   @Action(GameActions.AddCharacter)
   addCharacter(
     ctx: StateContext<GameStateModel>,
@@ -195,6 +207,36 @@ export class GameState {
         wordInput: [],
       })
     );
+
+    console.log('[DEBUG]', ctx.getState())
+    console.log('[DEBUG]', this.store.selectSnapshot(GameState.isGameWin))
+
+    const uuid = this.store.selectSnapshot(UserState.uuid);
+    if (this.store.selectSnapshot(GameState.isGameLose)) {
+      ctx.setState(
+        patch<GameStateModel>({
+          players: updateItem<IPlayerData>(
+            player => player.uuid === uuid,
+            patch<IPlayerData>({
+              roundStatus: ERoundStatus.Lose,
+            })
+          )
+        })
+      );
+    }
+
+    if (this.store.selectSnapshot(GameState.isGameWin)) {
+      ctx.setState(
+        patch<GameStateModel>({
+          players: updateItem<IPlayerData>(
+            player => player.uuid === uuid,
+            patch<IPlayerData>({
+              roundStatus: ERoundStatus.Win,
+            })
+          )
+        })
+      );
+    }
   }
 
   @Action(GameActions.CreateGame)
@@ -260,15 +302,24 @@ export class GameState {
     return ctx.dispatch(new WordActions.GetNewWord());
   }
 
-  @Action(GameActions.AddPlayer)
+  @Action(GameActions.SyncPlayer)
   addPlayer(
     ctx: StateContext<GameStateModel>,
-    { player }: GameActions.AddPlayer
+    action: GameActions.SyncPlayer
   ) {
+
+    const findPlayer = (player: IPlayerData) => player.uuid === action.player.uuid;
 
     ctx.setState(
       patch<GameStateModel>({
-        players: append<IPlayerData>([player])
+        players: iif<IPlayerData[]>(
+          (players) => !!players?.find(findPlayer),
+          updateItem<IPlayerData>(
+            findPlayer,
+            action.player
+          ),
+          append<IPlayerData>([action.player])
+        )
       })
     );
   }
@@ -284,6 +335,33 @@ export class GameState {
       players,
     })
 
-    this.store.dispatch(new WordActions.SetWord(answer));
+    if (this.store.selectSnapshot(WordState.word) !== answer) {
+      ctx.patchState({
+        histories: [],
+        wordInput: [],
+      })
+      this.store.dispatch(new WordActions.SetWord(answer));
+    }
+  }
+
+  @Action(GameActions.NewGame)
+  newGame(
+    ctx: StateContext<GameStateModel>,
+  ) {
+
+    const players = ctx.getState().players.map(player => {
+      return {
+        ...player,
+        roundStatus: ERoundStatus.NotComplete,
+      }
+    })
+
+    ctx.patchState({
+      players,
+      histories: [],
+      wordInput: [],
+    })
+
+    return ctx.dispatch(new WordActions.GetNewWord());
   }
 }
