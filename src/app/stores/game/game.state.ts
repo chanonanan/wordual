@@ -148,7 +148,9 @@ export class GameState {
     if (players.every(player => player.roundStatus === ERoundStatus.Lose)) {
       return 'No player win this round!';
     }
-    return players.find(player => player.roundStatus === ERoundStatus.Win)?.name || '';
+    const name = players.find(player => player.roundStatus === ERoundStatus.Win)?.name;
+
+    return name ? `${name}'s winning!` : '';
   }
 
   @Action(GameActions.AddCharacter)

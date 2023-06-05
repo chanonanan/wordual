@@ -21,7 +21,7 @@ import { Observable } from 'rxjs';
         isHost: isHost$ | async,
       } as data">
         <dialog #dialog [ngClass]="{ 'hide': !data.winner }">
-          <p>{{ data.winner }}'s winning</p>
+          <p>{{ data.winner }}</p>
           <button *ngIf="data.isHost" (click)="newGame()">New Game</button>
         </dialog>
       </ng-container>
@@ -48,10 +48,6 @@ export class GameComponent implements AfterViewInit {
         this.dialog.nativeElement.showModal();
       } else {
         this.dialog.nativeElement.close();
-        // fromEvent(this.dialog.nativeElement, 'animationend').pipe(
-        //   first(),
-        //   tap(() => this.dialog.nativeElement.classList.add('hide'))
-        // )
       }
     })
   }
