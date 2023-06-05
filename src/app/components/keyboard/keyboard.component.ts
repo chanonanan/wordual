@@ -12,14 +12,14 @@ import { Observable } from 'rxjs';
   template: `
     <ng-container *ngIf="wordUsed$ | async as wordUsed">
       <div class="row" *ngFor="let row of rows; trackBy: trackByRow">
-        <div class="key" *ngFor="let key of row; trackBy: trackByKey" (click)="onKeyTap(key)"
+        <button class="key" *ngFor="let key of row; trackBy: trackByKey" (click)="onKeyTap(key)"
           [ngClass]="{
             'found': wordUsed.has(key) && wordUsed.get(key),
             'not-found': wordUsed.has(key) && !wordUsed.get(key),
             'big-key': specialKeys.includes(key)
           }">
           {{key | uppercase}}
-        </div>
+        </button>
       </div>
     </ng-container>
   `,

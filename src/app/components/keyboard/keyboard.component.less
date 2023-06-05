@@ -1,13 +1,13 @@
 :host {
   display: grid;
   grid-template-rows: repeat(3, 1fr);
-  gap: 8px;
-  height: 200px;
+  gap: 0.2rem;
+  height: var(--keyboard-height);
 }
 
 .row {
   display: grid;
-  gap: 0.2rem;
+  gap: inherit;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
   width: 100%;
@@ -20,34 +20,30 @@
 
     .key {
       user-select: none;
-      background-color: var(--color-tone-2);
       border-radius: 5px;
-      text-align: center;
-      display: flex;
-      padding: 0 5px;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
       color: white;
       font-size: 1.25rem;
-      border: var(--color-tone-2);
-      transition: transform 0.3s ease;
+      padding: 0 5px;
 
       &.found {
         background-color: var(--present-color-tone);
+
+        &:hover {
+          background-color: var(--present-color-tone-darker);
+        }
       }
 
       &.not-found {
         background-color: var(--color-tone-4);
+
+        &:hover {
+          background-color: var(--color-tone-5);
+        }
       }
 
       &.big-key {
         min-width: 3rem;
         width: max-content;
-      }
-
-      &:active {
-        transform: translateY(4px);
       }
     }
 }
