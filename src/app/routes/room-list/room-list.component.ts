@@ -21,7 +21,7 @@ import { Observable } from 'rxjs';
       <div content>
         <ul *ngIf="rooms$ | async as rooms">
           <li *ngFor="let room of rooms">
-            <app-avatar [name]="room.host" [size]="'small'"/>
+            <app-avatar [name]="room.host.name" [size]="'small'"/>
             <span>{{ room.host }}'s Room</span>
             <span class="join" (click)="joinRoom(room.roomId)">JOIN</span>
           </li>

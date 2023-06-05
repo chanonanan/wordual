@@ -28,7 +28,7 @@ export class RoomState {
     if (!action.room.roomId) {
       ctx.setState(
         patch<RoomStateModel>({
-          rooms: removeItem<IRoomData>((room) => room.hostId === action.room.hostId)
+          rooms: removeItem<IRoomData>((room) => room.host.uuid === action.room.host.uuid)
         })
       );
       return;
@@ -37,9 +37,9 @@ export class RoomState {
     ctx.setState(
       patch<RoomStateModel>({
         rooms: iif<IRoomData[]>(
-          (rooms => !!rooms?.find(room => room.hostId === action.room.hostId)),
+          (rooms => !!rooms?.find(room => room.host.uuid === action.room.host.uuid)),
           updateItem<IRoomData>(
-            (room) => room.hostId === action.room.hostId,
+            (room) => room.host.uuid === action.room.host.uuid,
             action.room
           ),
           append<IRoomData>([action.room])

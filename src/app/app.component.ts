@@ -10,9 +10,9 @@ import { ToastService } from '@services/toast/toast.service';
 import { GameActions } from '@stores/game/game.action';
 import { GameState } from '@stores/game/game.state';
 import { RoomActions } from '@stores/room/room.action';
-import { UserState } from '@stores/user/user.state';
 import { WordState } from '@stores/word/word.state';
 import { PlayerUtil } from '@utils/player.util';
+import { RoomUtil } from '@utils/room.util';
 import { Observable, OperatorFunction, combineLatest, filter, from, switchMap, tap } from 'rxjs';
 
 @Component({
@@ -32,6 +32,7 @@ export class AppComponent implements OnInit {
   private store = inject(Store);
   private toast = inject(ToastService);
   private playerUtil = inject(PlayerUtil);
+  private roomUtil = inject(RoomUtil);
 
   ngOnInit(): void {
     this.createGameEventHandler();
@@ -134,18 +135,7 @@ export class AppComponent implements OnInit {
   }
 
   private boardcastRoomData(): void {
-    const status = this.store.selectSnapshot(GameState.status);
-    const players = this.store.selectSnapshot(GameState.players);
-    const host = this.store.selectSnapshot(UserState.username);
-    const hostId = this.store.selectSnapshot(UserState.uuid);
-    const roomId = this.route.snapshot.queryParamMap.get('roomId') as string;
-    this.ablyService.publishRoom<IRoomData>(ROOM_DATA_RESULT, {
-      host,
-      hostId,
-      status,
-      players,
-      roomId,
-    });
+    this.ablyService.publishRoom<IRoomData>(ROOM_DATA_RESULT, this.roomUtil.getRoomData());
   }
   //#endregion
 

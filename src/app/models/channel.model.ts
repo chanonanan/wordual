@@ -22,8 +22,7 @@ export interface IUsernameValidation {
 }
 
 export interface IRoomData {
-  host: string;
-  hostId: string;
+  host: IPlayerData;
   players: IPlayerData[];
   roomId: string;
   status: EGameStatus;
