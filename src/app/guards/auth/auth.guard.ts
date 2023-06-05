@@ -130,6 +130,12 @@ const verifiedWithHost = (
     tap(() => ablyService.publish<IPlayerData>(REQUEST_USERNAME_VALIDATION, player)),
     switchMap(() => ablyService.subscribe<IUsernameValidation>(USERNAME_VALIDATION_RESULT)),
     map(({ status, isValidName }) => {
+      if (status === EGameStatus.Started) {
+        toast.showToast(`Game's already started!`, 'error');
+        router.navigate(['']);
+        return false;
+      }
+
       if (!isValidName) {
         toast.showToast(`Name's duplicated!`, 'error');
         router.navigate([''], {
@@ -138,12 +144,6 @@ const verifiedWithHost = (
             isValidName,
           }
         });
-        return false;
-      }
-
-      if (status === EGameStatus.Started) {
-        toast.showToast(`Game's already started!`, 'error');
-        router.navigate(['']);
         return false;
       }
 
