@@ -1,4 +1,4 @@
-import { ISyncGameData } from '@models/channel.model';
+import { IPlayerData, ISyncGameData } from '@models/channel.model';
 
 export namespace GameActions {
   export class AddCharacter {
@@ -34,7 +34,7 @@ export namespace GameActions {
 
   export class AddPlayer {
     static readonly type = '[Game] Add Player';
-    constructor(public player: string) { }
+    constructor(public player: IPlayerData) { }
   }
 
   export class SyncGame {

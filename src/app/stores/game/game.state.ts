@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { EGameStatus } from '@models/game.model';
+import { IPlayerData } from '@models/channel.model';
+import { EGameStatus, ERoundStatus } from '@models/game.model';
 import { EGridStatus, IGridData } from '@models/grid.model';
 import { Action, Selector, State, StateContext, Store } from '@ngxs/store';
 import { append, patch, removeItem } from '@ngxs/store/operators';
@@ -8,6 +9,7 @@ import { ToastService } from '@services/toast/toast.service';
 import { UserState } from '@stores/user/user.state';
 import { WordActions } from '@stores/word/word.action';
 import { WordState } from '@stores/word/word.state';
+import { PlayerUtil } from '@utils/player.util';
 import { map, tap } from 'rxjs';
 import { GameActions } from './game.action';
 
@@ -15,8 +17,9 @@ export class GameStateModel {
   public wordInput: string[] = [];
   public histories: string[] = [];
   public isHost: boolean = false;
-  public players: string[] = [];
+  public players: IPlayerData[] = [];
   public status: EGameStatus = EGameStatus.NotInitiated;
+  public roundStatus: ERoundStatus = ERoundStatus.NotComplete;
 };
 
 export const GameStateName = 'GameState';
@@ -30,6 +33,7 @@ export class GameState {
   private store = inject(Store);
   private ablyService = inject(AblyService);
   private toast = inject(ToastService);
+  private playerUtil = inject(PlayerUtil);
 
   @Selector()
   public static wordInput(state: GameStateModel): string[] {
@@ -47,13 +51,18 @@ export class GameState {
   }
 
   @Selector()
-  public static players(state: GameStateModel): string[] {
+  public static players(state: GameStateModel): IPlayerData[] {
     return state.players;
   }
 
   @Selector()
   public static status(state: GameStateModel): EGameStatus {
     return state.status;
+  }
+
+  @Selector()
+  public static roundStatus(state: GameStateModel): ERoundStatus {
+    return state.roundStatus;
   }
 
   @Selector([GameState.histories, WordState.word])
@@ -65,6 +74,19 @@ export class GameState {
     });
 
     return map;
+  }
+
+  @Selector([GameState.histories, WordState.word])
+  public static isGameLose(state: GameStateModel, histories: string[], answer: string): boolean {
+    const stack = histories.length;
+    const isAnswerFound = !!histories.find(history => history === answer);
+    return stack === 5 && !isAnswerFound;
+  }
+
+  @Selector([GameState.histories, WordState.word])
+  public static isGameWin(state: GameStateModel, histories: string[], answer: string): boolean {
+    const isAnswerFound = !!histories.find(history => history === answer);
+    return isAnswerFound;
   }
 
   @Selector([GameState.histories, WordState.word])
@@ -154,14 +176,14 @@ export class GameState {
 
     const { wordInput } = ctx.getState();
     if (wordInput.length < 5) {
-      this.toast.showToast('Word\'s least than 5 letters!', 'error');
+      this.toast.showToast(`Word's least than 5 letters!`, 'error');
       return;
     }
 
     const wordsSet = this.store.selectSnapshot(WordState.wordsSet);
 
     if (!wordsSet.has(wordInput.join(''))) {
-      this.toast.showToast('Word not found!', 'error');
+      this.toast.showToast(`Word not found!`, 'error');
       return;
     }
 
@@ -181,13 +203,13 @@ export class GameState {
     { roomId }: GameActions.CreateGame
   ) {
 
-    const username = this.store.selectSnapshot(UserState.username);
+    const player = this.playerUtil.getPlayerData();
     ctx.patchState({
       isHost: true,
-      players: [username],
+      players: [player],
     });
 
-    return this.ablyService.generateClient(username, roomId).pipe(
+    return this.ablyService.generateClient(player.uuid, roomId).pipe(
       tap(() => {
         ctx.patchState({
           status: EGameStatus.Initiated,
@@ -203,9 +225,9 @@ export class GameState {
     { roomId }: GameActions.JoinGame
   ) {
 
-    const username = this.store.selectSnapshot(UserState.username);
+    const uuid = this.store.selectSnapshot(UserState.uuid);
 
-    return this.ablyService.generateClient(username, roomId).pipe(
+    return this.ablyService.generateClient(uuid, roomId).pipe(
       tap(() => {
         ctx.patchState({
           status: EGameStatus.Initiated,
@@ -221,8 +243,8 @@ export class GameState {
     ctx: StateContext<GameStateModel>,
   ) {
 
-    const username = this.store.selectSnapshot(UserState.username);
-    return this.ablyService.generateClient(username);
+    const uuid = this.store.selectSnapshot(UserState.uuid);
+    return this.ablyService.generateClient(uuid);
 
   }
 
@@ -246,7 +268,7 @@ export class GameState {
 
     ctx.setState(
       patch<GameStateModel>({
-        players: append<string>([player])
+        players: append<IPlayerData>([player])
       })
     );
   }

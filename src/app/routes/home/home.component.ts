@@ -19,21 +19,21 @@ import { v4 as uuid } from 'uuid';
   },
   imports: [AsyncPipe, NgIf, AvatarComponent, KeyboardComponent, CardComponent],
   template: `
-    <app-card>
+    <app-card *ngIf="{ name: username$ | async } as player">
       <h3 header>Welcome to Wordual</h3>
-      <section content *ngIf="{ username: username$ | async } as data">
-        <app-avatar [name]="data.username" />
+      <section content>
+        <app-avatar [name]="player.name" />
         <section class="name-section">
           <label for="name">Enter your name:</label>
-          <input type="text" name="name" [value]="data.username" (keyup)="updateUsername($event)">
+          <input type="text" name="name" [value]="player.name" (keyup)="updateUsername($event)">
         </section>
       </section>
-      <section button *ngIf="{ isUsernameValid: isUsernameValid$ | async } as data" class="button-section">
+      <section button class="button-section">
         <!-- <button (click)="createRoom()" [disabled]="!data.isUsernameValid">Create Room</button> -->
-        <button button (click)="roomId ? joinRoom() : createRoom()" [disabled]="!data.isUsernameValid">
+        <button button (click)="roomId ? joinRoom() : createRoom()" [disabled]="!player.name">
           {{ roomId ? 'Join Room' : 'Create Room' }}
         </button>
-        <button (click)="findRoom()" [disabled]="!data.isUsernameValid">Find Room</button>
+        <button (click)="findRoom()" [disabled]="!player.name">Find Room</button>
       </section>
     </app-card>
   `,
@@ -42,7 +42,6 @@ import { v4 as uuid } from 'uuid';
 })
 export class HomeComponent implements OnInit {
   @Input() roomId?: string;
-  @Select(UserState.isUsernameValid) isUsernameValid$!: Observable<boolean>;
   @Select(UserState.username) username$!: Observable<string>;
 
   private store = inject(Store);

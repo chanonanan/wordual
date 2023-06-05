@@ -2,6 +2,7 @@ import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { Component, Input, inject } from '@angular/core';
 import { AvatarComponent } from '@components/avatar/avatar.component';
 import { CardComponent } from '@components/card/card.component';
+import { IPlayerData } from '@models/channel.model';
 import { Select, Store } from '@ngxs/store';
 import { GameActions } from '@stores/game/game.action';
 import { GameState } from '@stores/game/game.state';
@@ -17,11 +18,8 @@ import { Observable } from 'rxjs';
     <app-card>
       <h3 header>Waiting Room</h3>
       <div content>
-        <section class="player-section" *ngIf="player$ | async as players">
-          <div class="player" *ngFor="let player of players">
-            <app-avatar [name]="player"/>
-            <span>{{ player }}</span>
-          </div>
+        <section class="player-section" *ngIf="players$ | async as players">
+          <app-avatar *ngFor="let player of players" [name]="player.name" [displayName]="true"/>
         </section>
       </div>
       <button button (click)="start()" *ngIf="isHost$ | async">Start</button>
@@ -34,7 +32,7 @@ import { Observable } from 'rxjs';
 export class RoomComponent {
   @Input() id?: string;
 
-  @Select(GameState.players) public player$!: Observable<string>;
+  @Select(GameState.players) public players$!: Observable<IPlayerData[]>;
   @Select(GameState.isHost) public isHost$!: Observable<boolean>;
 
   get url(): string {
