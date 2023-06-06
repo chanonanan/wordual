@@ -11,12 +11,13 @@ import { UserState } from '@stores/user/user.state';
 import { WordActions } from '@stores/word/word.action';
 import { WordState } from '@stores/word/word.state';
 import { PlayerUtil } from '@utils/player.util';
+import { validateWord } from '@utils/word.util';
 import { map, tap } from 'rxjs';
 import { GameActions } from './game.action';
 
 export class GameStateModel {
   public wordInput: string[] = [];
-  public histories: string[] = [];
+  public guessedList: string[] = [];
   public isHost: boolean = false;
   public players: IPlayerData[] = [];
   public status: EGameStatus = EGameStatus.NotInitiated;
@@ -41,8 +42,8 @@ export class GameState {
   }
 
   @Selector()
-  public static histories(state: GameStateModel): string[] {
-    return state.histories;
+  public static guessedList(state: GameStateModel): string[] {
+    return state.guessedList;
   }
 
   @Selector()
@@ -60,11 +61,11 @@ export class GameState {
     return state.status;
   }
 
-  @Selector([GameState.histories, WordState.word])
-  public static keyboardStatus(state: GameStateModel, histories: string[], answer: string) {
+  @Selector([GameState.guessedList, WordState.word])
+  public static keyboardStatus(state: GameStateModel, guessedList: string[], answer: string) {
     const map = new Map<string, boolean>();
 
-    [...new Set(histories.join(''))].forEach(letter => {
+    [...new Set(guessedList.join(''))].forEach(letter => {
       map.set(letter, answer.includes(letter))
     });
 
@@ -81,42 +82,35 @@ export class GameState {
     };
   }
 
-  @Selector([GameState.histories, WordState.word])
-  public static isGameLose(state: GameStateModel, histories: string[], answer: string): boolean {
-    const stack = histories.length;
-    const isAnswerFound = !!histories.find(history => history === answer);
+  @Selector([GameState.guessedList, WordState.word])
+  public static isGameLose(state: GameStateModel, guessedList: string[], answer: string): boolean {
+    const stack = guessedList.length;
+    const isAnswerFound = !!guessedList.find(history => history === answer);
     return stack === MAXIMUM_HISTORIES && !isAnswerFound;
   }
 
-  @Selector([GameState.histories, WordState.word])
-  public static isGameWin(state: GameStateModel, histories: string[], answer: string): boolean {
-    const isAnswerFound = !!histories.find(history => history === answer);
+  @Selector([GameState.guessedList, WordState.word])
+  public static isGameWin(state: GameStateModel, guessedList: string[], answer: string): boolean {
+    const isAnswerFound = !!guessedList.find(history => history === answer);
     return isAnswerFound;
   }
 
-  @Selector([GameState.wordInput, GameState.histories, WordState.word])
-  public static gridData(state: GameStateModel, wordInput: string[], histories: string[], answer: string): IGridData[][] {
+  @Selector([GameState.wordInput, GameState.guessedList, WordState.word])
+  public static gridData(state: GameStateModel, wordInput: string[], guessedList: string[], answer: string): IGridData[][] {
     const emptyWord = Array.from({ length: WORD_LENGTH }, () => ({
       letter: '',
       status: EGridStatus.EMPTY
     }));
 
-
-    const historiesWithCurrent = [
-      ...histories.map(history =>
-        [...history].map((letter, index) => ({
-          letter,
-          status: !answer.includes(letter) ? EGridStatus.NOT_IN_WORD :
-            (answer[index] === letter ? EGridStatus.RIGHT_POSITION : EGridStatus.WRONG_POSITION)
-        }))
-      ),
+    const allGuessed =  [
+      ...guessedList.map(guessed => validateWord(guessed, answer)),
       Array.from({ length: WORD_LENGTH }, (_, index) => ({
         letter: wordInput[index] || '',
         status: EGridStatus.EMPTY
       }))
-    ]
+    ];
 
-    return Array.from({ length: MAXIMUM_HISTORIES }, (_, index) => historiesWithCurrent[index] || emptyWord);
+   return Array.from({ length: MAXIMUM_HISTORIES }, (_, index) => allGuessed[index] || emptyWord);
   }
 
   @Selector([GameState.players, UserState.uuid])
@@ -189,7 +183,7 @@ export class GameState {
 
     ctx.setState(
       patch<GameStateModel>({
-        histories: append<string>([
+        guessedList: append<string>([
           wordInput.join('')
         ]),
         wordInput: [],
@@ -331,7 +325,7 @@ export class GameState {
 
     if (this.store.selectSnapshot(WordState.word) !== answer) {
       ctx.patchState({
-        histories: [],
+        guessedList: [],
         wordInput: [],
       })
       this.store.dispatch(new WordActions.SetWord(answer));
@@ -352,7 +346,7 @@ export class GameState {
 
     ctx.patchState({
       players,
-      histories: [],
+      guessedList: [],
       wordInput: [],
     })
 
