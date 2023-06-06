@@ -52,8 +52,11 @@ export class AblyService {
   }
 
   unsubscribe(): void {
+    console.log('unsubscribe')
     this.channel.unsubscribe();
     this.channel.detach();
+    this.roomChannel.unsubscribe();
+    this.roomChannel.detach();
   }
 
   private connectServer(clientId: string): Observable<Realtime> {

@@ -14,6 +14,7 @@ export interface IPlayerData {
   uuid: string;
   name: string;
   roundStatus: ERoundStatus;
+  status: EGameStatus;
 };
 
 export interface IUsernameValidation {

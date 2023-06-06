@@ -14,7 +14,8 @@ export class PlayerUtil {
     const uuid = this.store.selectSnapshot(UserState.uuid);
     const name = this.store.selectSnapshot(UserState.username);
     const roundStatus = this.store.selectSnapshot(GameState.roundStatus);
+    const status = this.store.selectSnapshot(GameState.status);
 
-    return { uuid, name, roundStatus };
+    return { uuid, name, roundStatus, status };
   }
 }

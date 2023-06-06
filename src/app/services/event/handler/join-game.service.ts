@@ -2,11 +2,12 @@ import { Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SYNC_GAME, UPDATE_PLAYER_DATA } from '@consts/channel.const';
 import { IPlayerData, ISyncGameData } from '@models/channel.model';
+import { EGameStatus } from '@models/game.model';
 import { ActionCompletion, ofActionCompleted } from '@ngxs/store';
 import { BaseEventHandlerService } from '@services/event/handler/base-handler.srevice';
 import { GameActions } from '@stores/game/game.action';
 import { GameState } from '@stores/game/game.state';
-import { Observable, switchMap } from 'rxjs';
+import { Observable, combineLatest, filter, switchMap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class JoinGameEventHandlerService extends BaseEventHandlerService {
@@ -33,7 +34,8 @@ export class JoinGameEventHandlerService extends BaseEventHandlerService {
 
   private syncGameFromHost(): void {
     this.joinGame$.pipe(
-      switchMap(() => this.ablyService.subscribe<ISyncGameData>(SYNC_GAME))
+      switchMap(() => this.ablyService.subscribe<ISyncGameData>(SYNC_GAME)),
+      filter(() => this.isPlayerInRoom())
     ).subscribe(data => {
       this.store.dispatch(new GameActions.SyncGame(data));
       this.checkGameStart(data.status, false);
@@ -42,13 +44,24 @@ export class JoinGameEventHandlerService extends BaseEventHandlerService {
 
   private updatePlayerStatus(): void {
     this.joinGame$.pipe(
-      switchMap(() => this.store.select(GameState.roundStatus))
-    ).subscribe(() => {
+      switchMap(() => combineLatest([
+        this.store.select(GameState.roundStatus),
+        this.store.select(GameState.status),
+      ]))
+    ).subscribe(([_, status]) => {
       this.publishPlayerData();
+
+      if (status === EGameStatus.NotInitiated) {
+        this.ablyService.unsubscribe();
+      }
     });
   }
 
   private publishPlayerData(): void {
     this.ablyService.publish<IPlayerData>(UPDATE_PLAYER_DATA, this.playerUtil.getPlayerData());
+  }
+
+  private isPlayerInRoom(): boolean {
+    return this.route.snapshot.queryParamMap.has('roomId');
   }
 }

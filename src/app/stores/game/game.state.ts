@@ -312,6 +312,15 @@ export class GameState {
 
     const findPlayer = (player: IPlayerData) => player.uuid === action.player.uuid;
 
+    if (action.player.status === EGameStatus.NotInitiated) {
+      ctx.setState(
+        patch<GameStateModel>({
+          players: removeItem<IPlayerData>(findPlayer)
+        })
+      );
+      return;
+    }
+
     ctx.setState(
       patch<GameStateModel>({
         players: iif<IPlayerData[]>(
