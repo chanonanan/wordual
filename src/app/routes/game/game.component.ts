@@ -6,6 +6,7 @@ import { KeyboardComponent } from "@components/keyboard/keyboard.component";
 import { Select, Store } from '@ngxs/store';
 import { GameActions } from '@stores/game/game.action';
 import { GameState } from '@stores/game/game.state';
+import { WordState } from '@stores/word/word.state';
 import { Observable } from 'rxjs';
 
 @Component({
@@ -19,9 +20,11 @@ import { Observable } from 'rxjs';
       <ng-container *ngIf="{
         winner: roundWinner$ | async,
         isHost: isHost$ | async,
+        answer: answer$ | async
       } as data">
         <dialog #dialog [ngClass]="{ 'hide': !data.winner }">
           <p>{{ data.winner }}</p>
+          <span>Answer's <b>{{ data.answer }}</b></span>
           <button *ngIf="data.isHost" (click)="newGame()">New Game</button>
         </dialog>
       </ng-container>
@@ -34,6 +37,7 @@ export class GameComponent implements AfterViewInit {
   @Input() id?: string;
   @Select(GameState.roundWinner) roundWinner$!: Observable<string>;
   @Select(GameState.isHost) isHost$!: Observable<boolean>;
+  @Select(WordState.word) answer$!: Observable<string>;
 
   @ViewChild('dialog') dialog!: ElementRef<HTMLDialogElement>;
 
