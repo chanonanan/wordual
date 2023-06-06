@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { MAXIMUM_HISTORIES, WORD_LENGTH } from '@consts/game.const';
 import { IPlayerData } from '@models/channel.model';
 import { EGameStatus, ERoundStatus } from '@models/game.model';
 import { EGridStatus, IGridData } from '@models/grid.model';
@@ -84,7 +85,7 @@ export class GameState {
   public static isGameLose(state: GameStateModel, histories: string[], answer: string): boolean {
     const stack = histories.length;
     const isAnswerFound = !!histories.find(history => history === answer);
-    return stack === 5 && !isAnswerFound;
+    return stack === MAXIMUM_HISTORIES && !isAnswerFound;
   }
 
   @Selector([GameState.histories, WordState.word])
@@ -93,34 +94,9 @@ export class GameState {
     return isAnswerFound;
   }
 
-  @Selector([GameState.histories, WordState.word])
-  public static historiesDridData(state: GameStateModel, wordInput: string[], histories: string[], answer: string): IGridData[][] {
-    const emptyWord = Array.from({ length: 5 }, () => ({
-      letter: '',
-      status: EGridStatus.EMPTY
-    }));
-
-
-    const historiesWithCurrent = [
-      ...histories.map(history =>
-        [...history].map((letter, index) => ({
-          letter,
-          status: !answer.includes(letter) ? EGridStatus.NOT_IN_WORD :
-            (answer[index] === letter ? EGridStatus.RIGHT_POSITION : EGridStatus.WRONG_POSITION)
-        }))
-      ),
-      Array.from({ length: 5 }, (_, index) => ({
-        letter: wordInput[index] || '',
-        status: EGridStatus.EMPTY
-      }))
-    ]
-
-    return Array.from({ length: 6 }, (_, index) => historiesWithCurrent[index] || emptyWord);
-  }
-
   @Selector([GameState.wordInput, GameState.histories, WordState.word])
   public static gridData(state: GameStateModel, wordInput: string[], histories: string[], answer: string): IGridData[][] {
-    const emptyWord = Array.from({ length: 5 }, () => ({
+    const emptyWord = Array.from({ length: WORD_LENGTH }, () => ({
       letter: '',
       status: EGridStatus.EMPTY
     }));
@@ -134,13 +110,13 @@ export class GameState {
             (answer[index] === letter ? EGridStatus.RIGHT_POSITION : EGridStatus.WRONG_POSITION)
         }))
       ),
-      Array.from({ length: 5 }, (_, index) => ({
+      Array.from({ length: WORD_LENGTH }, (_, index) => ({
         letter: wordInput[index] || '',
         status: EGridStatus.EMPTY
       }))
     ]
 
-    return Array.from({ length: 6 }, (_, index) => historiesWithCurrent[index] || emptyWord);
+    return Array.from({ length: MAXIMUM_HISTORIES }, (_, index) => historiesWithCurrent[index] || emptyWord);
   }
 
   @Selector([GameState.players, UserState.uuid])
@@ -170,7 +146,7 @@ export class GameState {
   ) {
 
     const { wordInput } = ctx.getState();
-    if (wordInput.length === 5) {
+    if (wordInput.length === WORD_LENGTH) {
       return;
     }
 
@@ -199,8 +175,8 @@ export class GameState {
   ) {
 
     const { wordInput } = ctx.getState();
-    if (wordInput.length < 5) {
-      this.toast.showToast(`Word's least than 5 letters!`, 'error');
+    if (wordInput.length < WORD_LENGTH) {
+      this.toast.showToast(`Word's least than ${WORD_LENGTH} letters!`, 'error');
       return;
     }
 
