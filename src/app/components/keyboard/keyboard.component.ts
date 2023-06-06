@@ -11,7 +11,7 @@ import { TouchDirective } from 'src/app/directives/touch.directive';
   standalone: true,
   imports: [AsyncPipe, NgClass, NgIf, NgFor, UpperCasePipe, TouchDirective],
   template: `
-    <ng-container *ngIf="wordUsed$ | async as wordUsed">
+    <ng-container *ngIf="keyboardStatus$ | async as keyboardStatus">
       <div class="row" *ngFor="let row of rows; trackBy: trackByRow">
         <button class="key"
           *ngFor="let key of row; trackBy: trackByKey"
@@ -20,11 +20,7 @@ import { TouchDirective } from 'src/app/directives/touch.directive';
           (click)="onKeyTap(key, $event)"
           [id]="key"
           tabIndex="-1"
-          [ngClass]="{
-            'found': wordUsed.has(key) && wordUsed.get(key),
-            'not-found': wordUsed.has(key) && !wordUsed.get(key),
-            'big-key': specialKeys.includes(key),
-          }">
+          [ngClass]="keyboardStatus(key, specialKeys)">
           {{key | uppercase}}
         </button>
       </div>
@@ -40,7 +36,7 @@ export class KeyboardComponent {
     this.animateKey(event.key);
   }
 
-  @Select(GameState.wordUsed) public wordUsed$!: Observable<Map<string, boolean>>;
+  @Select(GameState.keyboardStatus) public keyboardStatus$!: Observable<ReturnType<typeof GameState.keyboardStatus>>;
 
   public readonly rows = [
     ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],

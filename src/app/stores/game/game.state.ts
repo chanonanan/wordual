@@ -60,14 +60,24 @@ export class GameState {
   }
 
   @Selector([GameState.histories, WordState.word])
-  public static wordUsed(state: GameStateModel, histories: string[], answer: string): Map<string, boolean> {
+  public static keyboardStatus(state: GameStateModel, histories: string[], answer: string) {
     const map = new Map<string, boolean>();
 
     [...new Set(histories.join(''))].forEach(letter => {
       map.set(letter, answer.includes(letter))
     });
 
-    return map;
+    return (key: string, specialKeys: string[]) => {
+      if (specialKeys.includes(key)) {
+        return 'big-key';
+      }
+
+      if (!map.has(key)) {
+        return '';
+      }
+
+      return map.get(key) ? 'found' : 'not-found';
+    };
   }
 
   @Selector([GameState.histories, WordState.word])
