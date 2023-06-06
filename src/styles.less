@@ -100,17 +100,27 @@ button {
   &:disabled {
     background-color: var(--color-tone-2);
     cursor: unset;
+
+    &:focus-visible {
+      outline: none;
+    }
   }
 
   &:not(:disabled) {
     cursor: pointer;
 
-    &:active {
+    &:active, &.active {
       z-index: 2;
       transform: translateY(4px);
+      background-color: var(--color-tone-4);
     }
 
     &:hover {
+      background-color: var(--color-tone-4);
+    }
+
+    &:focus-visible {
+      outline: none;
       background-color: var(--color-tone-4);
     }
   }

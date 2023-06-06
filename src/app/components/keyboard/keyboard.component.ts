@@ -1,9 +1,9 @@
 import { AsyncPipe, NgClass, NgFor, NgIf, UpperCasePipe } from '@angular/common';
-import { Component, HostListener, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angular/core';
 import { Select, Store } from '@ngxs/store';
 import { GameActions } from '@stores/game/game.action';
 import { GameState } from '@stores/game/game.state';
-import { Observable } from 'rxjs';
+import { EMPTY, Observable, delay, first, of, tap } from 'rxjs';
 
 @Component({
   selector: 'app-keyboard',
@@ -12,7 +12,11 @@ import { Observable } from 'rxjs';
   template: `
     <ng-container *ngIf="wordUsed$ | async as wordUsed">
       <div class="row" *ngFor="let row of rows; trackBy: trackByRow">
-        <button class="key" *ngFor="let key of row; trackBy: trackByKey" (click)="onKeyTap(key)"
+        <button class="key"
+          *ngFor="let key of row; trackBy: trackByKey"
+          (click)="onKeyTap(key, $event)"
+          [id]="key"
+          tabIndex="-1"
           [ngClass]="{
             'found': wordUsed.has(key) && wordUsed.get(key),
             'not-found': wordUsed.has(key) && !wordUsed.get(key),
@@ -23,12 +27,14 @@ import { Observable } from 'rxjs';
       </div>
     </ng-container>
   `,
-  styleUrls: ['./keyboard.component.less']
+  styleUrls: ['./keyboard.component.less'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class KeyboardComponent {
   @HostListener('document:keyup', ['$event'])
   onKeyUp(event: KeyboardEvent): void {
-    this.onKeyTap(event.key);
+    this.onKeyTap(event.key, event);
+    this.animateKey(event.key);
   }
 
   @Select(GameState.wordUsed) public wordUsed$!: Observable<Map<string, boolean>>;
@@ -45,8 +51,8 @@ export class KeyboardComponent {
 
   private store: Store = inject(Store);
 
-  onKeyTap(key: string): void {
-    console.log(key);
+  onKeyTap(key: string, event: Event): void {
+    event.preventDefault();
     switch (key.toLowerCase()) {
       case 'enter':
         this.store.dispatch(new GameActions.EnterWord());
@@ -62,6 +68,8 @@ export class KeyboardComponent {
         this.store.dispatch(new GameActions.AddCharacter(key));
         break;
     }
+
+    requestAnimationFrame(() => (event.target as HTMLButtonElement)?.blur());
   }
 
   trackByRow(index: number, row: string[]): string {
@@ -70,6 +78,20 @@ export class KeyboardComponent {
 
   trackByKey(index: number, key: string): string {
     return key;
+  }
+
+  private animateKey(key: string): void {
+    let element = (document.querySelector(`#${key}`) as HTMLButtonElement);
+
+    if (element) {
+      of(EMPTY).pipe(
+        tap(() => element.focus()),
+        tap(() => element.classList.toggle('active')),
+        delay(100),
+        tap(() => element.classList.toggle('active')),
+        first(),
+      ).subscribe(() => (element as any) = null);
+    }
   }
 
 }
