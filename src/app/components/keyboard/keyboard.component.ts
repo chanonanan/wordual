@@ -4,23 +4,26 @@ import { Select, Store } from '@ngxs/store';
 import { GameActions } from '@stores/game/game.action';
 import { GameState } from '@stores/game/game.state';
 import { EMPTY, Observable, delay, first, of, tap } from 'rxjs';
+import { TouchDirective } from 'src/app/directives/touch.directive';
 
 @Component({
   selector: 'app-keyboard',
   standalone: true,
-  imports: [AsyncPipe, NgClass, NgIf, NgFor, UpperCasePipe],
+  imports: [AsyncPipe, NgClass, NgIf, NgFor, UpperCasePipe, TouchDirective],
   template: `
     <ng-container *ngIf="wordUsed$ | async as wordUsed">
       <div class="row" *ngFor="let row of rows; trackBy: trackByRow">
         <button class="key"
           *ngFor="let key of row; trackBy: trackByKey"
+          appTouch
+          (touch)="onKeyTap(key, $event)"
           (click)="onKeyTap(key, $event)"
           [id]="key"
           tabIndex="-1"
           [ngClass]="{
             'found': wordUsed.has(key) && wordUsed.get(key),
             'not-found': wordUsed.has(key) && !wordUsed.get(key),
-            'big-key': specialKeys.includes(key)
+            'big-key': specialKeys.includes(key),
           }">
           {{key | uppercase}}
         </button>
@@ -52,7 +55,6 @@ export class KeyboardComponent {
   private store: Store = inject(Store);
 
   onKeyTap(key: string, event: Event): void {
-    event.preventDefault();
     switch (key.toLowerCase()) {
       case 'enter':
         this.store.dispatch(new GameActions.EnterWord());
@@ -68,8 +70,6 @@ export class KeyboardComponent {
         this.store.dispatch(new GameActions.AddCharacter(key));
         break;
     }
-
-    requestAnimationFrame(() => (event.target as HTMLButtonElement)?.blur());
   }
 
   trackByRow(index: number, row: string[]): string {
