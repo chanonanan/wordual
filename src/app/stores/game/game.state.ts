@@ -196,9 +196,6 @@ export class GameState {
       })
     );
 
-    console.log('[DEBUG]', ctx.getState())
-    console.log('[DEBUG]', this.store.selectSnapshot(GameState.isGameWin))
-
     const uuid = this.store.selectSnapshot(UserState.uuid);
     if (this.store.selectSnapshot(GameState.isGameLose)) {
       ctx.setState(
