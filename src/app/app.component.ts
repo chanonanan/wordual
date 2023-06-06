@@ -4,6 +4,7 @@ import { EventService } from '@services/event/event.service';
 @Component({
   selector: 'app-root',
   template: `
+    <app-loading/>
     <app-navbar></app-navbar>
     <router-outlet></router-outlet>
   `,

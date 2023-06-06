@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { HttpClientModule } from '@angular/common/http';
+import { LoadingComponent } from "@components/loading/loading.component";
 import { NavbarComponent } from "@components/navbar/navbar.component";
 import { NgxsLoggerPluginModule } from '@ngxs/logger-plugin';
 import { NgxsModule } from '@ngxs/store';
@@ -26,7 +27,8 @@ import { AppComponent } from './app.component';
             developmentMode: false
         }),
         NgxsLoggerPluginModule.forRoot(),
-        NavbarComponent
+        NavbarComponent,
+        LoadingComponent
     ]
 })
 export class AppModule { }
