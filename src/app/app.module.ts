@@ -4,6 +4,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
 import { LoadingComponent } from "@components/loading/loading.component";
 import { NavbarComponent } from "@components/navbar/navbar.component";
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { NgxsLoggerPluginModule } from '@ngxs/logger-plugin';
 import { NgxsModule } from '@ngxs/store';
 import { GameState } from '@stores/game/game.state';
@@ -28,7 +29,8 @@ import { AppComponent } from './app.component';
         }),
         NgxsLoggerPluginModule.forRoot(),
         NavbarComponent,
-        LoadingComponent
+        LoadingComponent,
+        FontAwesomeModule
     ]
 })
 export class AppModule { }
