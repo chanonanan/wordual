@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
 import { AblyService } from '@services/ably/ably.service';
-import { first } from 'rxjs';
 import { v4 } from 'uuid';
 import { UserActions } from './user.action';
 
@@ -48,9 +47,9 @@ export class UserState {
     })
   }
 
-  ngxsAfterBootstrap(ctx: StateContext<UserStateModel>) {
-    this.ablyService.generateClient(ctx.getState().uuid).pipe(
-      first()
-    ).subscribe();
-  }
+  // ngxsAfterBootstrap(ctx: StateContext<UserStateModel>) {
+  //   this.ablyService.generateClient(ctx.getState().uuid).pipe(
+  //     first()
+  //   ).subscribe();
+  // }
 }

@@ -29,11 +29,11 @@ import { v4 as uuid } from 'uuid';
         </section>
       </section>
       <section button class="button-section">
-        <!-- <button (click)="createRoom()" [disabled]="!data.isUsernameValid">Create Room</button> -->
         <button button (click)="roomId ? joinRoom() : createRoom()" [disabled]="!player.name">
           {{ roomId ? 'Join Room' : 'Create Room' }}
         </button>
         <button (click)="findRoom()" [disabled]="!player.name">Find Room</button>
+        <button class="start-btn" (click)="startGame()" [disabled]="!player.name">Start Game</button>
       </section>
     </app-card>
   `,
@@ -66,6 +66,10 @@ export class HomeComponent implements OnInit {
 
   findRoom(): void {
     this.store.dispatch(new GameActions.FindGame());
+  }
+
+  startGame(): void {
+    this.store.dispatch(new GameActions.StartGame());
   }
 
   updateUsername(event: Event): void {

@@ -1,4 +1,5 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, NgZone, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { MAXIMUM_HISTORIES, WORD_LENGTH } from '@consts/game.const';
 import { IPlayerData } from '@models/channel.model';
 import { EGameStatus, ERoundStatus } from '@models/game.model';
@@ -13,6 +14,7 @@ import { WordState } from '@stores/word/word.state';
 import { PlayerUtil } from '@utils/player.util';
 import { validateWord } from '@utils/word.util';
 import { map, tap } from 'rxjs';
+import { v4 } from 'uuid';
 import { GameActions } from './game.action';
 
 export class GameStateModel {
@@ -35,6 +37,8 @@ export class GameState {
   private ablyService = inject(AblyService);
   private toast = inject(ToastService);
   private playerUtil = inject(PlayerUtil);
+  private router = inject(Router);
+  private ngZone = inject(NgZone);
 
   @Selector()
   public static wordInput(state: GameStateModel): string[] {
@@ -274,11 +278,24 @@ export class GameState {
     ctx: StateContext<GameStateModel>,
   ) {
 
+    const isOffline = ctx.getState().status === EGameStatus.NotInitiated;
     ctx.patchState({
       status: EGameStatus.Started,
+      ...(isOffline ? {
+        isHost: true,
+        players: [this.playerUtil.getPlayerData()],
+      } : {})
     })
 
-    return ctx.dispatch(new WordActions.GetNewWord());
+    return ctx.dispatch(new WordActions.GetNewWord()).pipe(
+      tap(() => {
+        if (isOffline) {
+          this.ngZone.run(() => this.router.navigate(['game'], {
+            queryParams: { roomId: v4(), isAuthenicated: true }
+          }));
+        }
+      })
+    );
   }
 
   @Action(GameActions.SyncPlayer)

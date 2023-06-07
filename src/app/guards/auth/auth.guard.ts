@@ -119,6 +119,7 @@ const verifiedWithHost = (
   roomId: string,
 ) => {
   const { ablyService, router, toast, playerUtil } = services;
+  console.log('verifiedWithHost')
 
   if (!validate(roomId)) {
     toast.showToast(`RoomID's invalid`, 'error');

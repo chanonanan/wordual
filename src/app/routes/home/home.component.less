@@ -10,7 +10,12 @@
 }
 
 .button-section {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--small-gap);
+
+  .start-btn {
+    grid-column-end: span 2;
+  }
 }
 
