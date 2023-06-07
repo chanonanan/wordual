@@ -14,7 +14,6 @@ import { WordState } from '@stores/word/word.state';
 import { PlayerUtil } from '@utils/player.util';
 import { validateWord } from '@utils/word.util';
 import { map, tap } from 'rxjs';
-import { v4 } from 'uuid';
 import { GameActions } from './game.action';
 
 export class GameStateModel {
@@ -281,21 +280,9 @@ export class GameState {
     const isOffline = ctx.getState().status === EGameStatus.NotInitiated;
     ctx.patchState({
       status: EGameStatus.Started,
-      ...(isOffline ? {
-        isHost: true,
-        players: [this.playerUtil.getPlayerData()],
-      } : {})
     })
 
-    return ctx.dispatch(new WordActions.GetNewWord()).pipe(
-      tap(() => {
-        if (isOffline) {
-          this.ngZone.run(() => this.router.navigate(['game'], {
-            queryParams: { roomId: v4(), isAuthenicated: true }
-          }));
-        }
-      })
-    );
+    return ctx.dispatch(new WordActions.GetNewWord());
   }
 
   @Action(GameActions.SyncPlayer)

@@ -68,10 +68,12 @@ export class WordState {
   }
 
   ngxsAfterBootstrap(ctx: StateContext<WordStateModel>) {
-    this.http.get<IWordsResponse>('/api/words').pipe(
-      first()
-    ).subscribe(response => {
-      ctx.dispatch(new WordActions.SetWords(response.words));
-    });
+    if (!ctx.getState().words?.length) {
+      this.http.get<IWordsResponse>('/api/words').pipe(
+        first()
+      ).subscribe(response => {
+        ctx.dispatch(new WordActions.SetWords(response.words));
+      });
+    }
   }
 }

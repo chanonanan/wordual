@@ -6,6 +6,7 @@ import { LoadingComponent } from "@components/loading/loading.component";
 import { NavbarComponent } from "@components/navbar/navbar.component";
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { NgxsLoggerPluginModule } from '@ngxs/logger-plugin';
+import { NgxsStoragePluginModule } from '@ngxs/storage-plugin';
 import { NgxsModule } from '@ngxs/store';
 import { GameState } from '@stores/game/game.state';
 import { RoomState } from '@stores/room/room.state';
@@ -28,6 +29,7 @@ import { AppComponent } from './app.component';
             developmentMode: false
         }),
         NgxsLoggerPluginModule.forRoot(),
+        NgxsStoragePluginModule.forRoot(),
         NavbarComponent,
         LoadingComponent,
         FontAwesomeModule

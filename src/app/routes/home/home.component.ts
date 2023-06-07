@@ -9,7 +9,7 @@ import { GameActions } from '@stores/game/game.action';
 import { GameStateModel, GameStateName } from '@stores/game/game.state';
 import { UserActions } from '@stores/user/user.action';
 import { UserState } from '@stores/user/user.state';
-import { BehaviorSubject, Observable, debounceTime } from 'rxjs';
+import { BehaviorSubject, Observable, debounceTime, first } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 
 @Component({
@@ -69,7 +69,11 @@ export class HomeComponent implements OnInit {
   }
 
   startGame(): void {
-    this.store.dispatch(new GameActions.StartGame());
+    this.store.dispatch(new GameActions.CreateGame(uuid())).pipe(
+      first(),
+    ).subscribe(() => {
+      this.store.dispatch(new GameActions.StartGame());
+    });
   }
 
   updateUsername(event: Event): void {
