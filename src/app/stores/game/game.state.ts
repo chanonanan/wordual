@@ -327,7 +327,7 @@ export class GameState {
       players,
     })
 
-    if (this.store.selectSnapshot(WordState.word) !== answer) {
+    if (this.store.selectSnapshot(WordState.word) !== answer.word) {
       ctx.patchState({
         guessedList: [],
         wordInput: [],

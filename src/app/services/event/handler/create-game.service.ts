@@ -61,7 +61,7 @@ export class CreateGameEventHandlerService extends BaseEventHandlerService {
       switchMap(() => combineLatest([
         this.store.select(GameState.players),
         this.store.select(GameState.status),
-        this.store.select(WordState.word),
+        this.store.select(WordState.wordWithDefinitions),
       ]).pipe(debounceTime(300)))
     ).subscribe(([players, status, answer]) => {
       this.ablyService.publish<ISyncGameData>(SYNC_GAME, { players, status, answer });

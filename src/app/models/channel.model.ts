@@ -1,4 +1,5 @@
 import { EGameStatus, ERoundStatus } from '@models/game.model';
+import { IDefinitionsResponse } from '@models/word.model';
 import { Types } from 'ably';
 
 export interface IBaseMessage<T> extends Types.Message {
@@ -8,7 +9,7 @@ export interface IBaseMessage<T> extends Types.Message {
 export interface ISyncGameData {
   players: IPlayerData[];
   status: EGameStatus;
-  answer: string;
+  answer: IDefinitionsResponse;
 };
 export interface IPlayerData {
   uuid: string;

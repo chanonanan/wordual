@@ -10,3 +10,9 @@ export interface IResult {
 export interface IWordsResponse {
   words: string[];
 }
+
+export interface IDefinitionsResponse {
+  word: string;
+  definitions: string[];
+}
+

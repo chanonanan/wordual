@@ -85,7 +85,31 @@ app.get('/api/word', async (req, res) => {
 });
 
 app.get('/api/words', (req, res) => {
-  fs.readFile(path.join(__dirname, 'filteredWords.json'), 'utf8', (err, data) => {
+  fs.readFile(path.join(__dirname, 'translatedWords2.json'), 'utf8', (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Failed to retrieve random word', err });
+      return;
+    }
+
+    try {
+      const words = JSON.parse(data).filter(obj => obj.definitions.length).map(obj => obj.word);
+      console.log(`${words.length} words`)
+
+      res.json({ words });
+    } catch (error) {
+      console.error('Error parsing JSON:', error);
+      res.status(500).json({ message: 'Failed to retrieve random word', err });
+    }
+  });
+});
+
+app.get('/api/definitions', (req, res) => {
+  if (!req.query.word) {
+      res.status(500).json({ message: 'word query is missing' });
+      return;
+  }
+  fs.readFile(path.join(__dirname, 'translatedWords2.json'), 'utf8', (err, data) => {
     if (err) {
       console.error(err);
       res.status(500).json({ message: 'Failed to retrieve random word', err });
@@ -96,7 +120,7 @@ app.get('/api/words', (req, res) => {
       const words = JSON.parse(data);
       console.log(`${words.length} words`)
 
-      res.json({ words });
+      res.json({ ...words.find(obj => obj.word === req.query.word) });
     } catch (error) {
       console.error('Error parsing JSON:', error);
       res.status(500).json({ message: 'Failed to retrieve random word', err });

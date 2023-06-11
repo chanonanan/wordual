@@ -7,10 +7,43 @@
   margin: 0 auto;
   max-width: 500px;
 
+  .new-game-btn {
+    width: 100%;
+    height: 2rem;
+    background-color: var(--present-color-tone);
 
+    &:hover, &:active, &.active {
+      background-color: var(--present-color-tone-darker);
+    }
+
+    &.hide {
+      display: none;
+    }
+  }
 }
 
 dialog {
+
+  display: flex;
+  flex-direction: column;
+  max-height: 500px;
+
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .definitions {
+
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    ul {
+      overflow-y: auto;
+    }
+  }
 
   &::backdrop {
     position: fixed;
@@ -34,6 +67,8 @@ dialog {
   }
 
   &.hide {
+    opacity: 0;
+    z-index: -2;
     animation: hide-dialog 1s ease normal;
 
     &::backdrop {

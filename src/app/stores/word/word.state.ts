@@ -1,12 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { IWordsResponse } from '@models/word.model';
+import { IDefinitionsResponse, IWordsResponse } from '@models/word.model';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
 import { WordActions } from '@stores/word/word.action';
-import { first } from 'rxjs';
+import { first, tap } from 'rxjs';
 
 class WordStateModel {
   public word!: string;
+  public definitions!: string[];
   public words!: string[];
 };
 
@@ -29,9 +30,19 @@ export class WordState {
     return state.words;
   }
 
+  @Selector()
+  public static definitions(state: WordStateModel): string[] {
+    return state.definitions;
+  }
+
   @Selector([WordState.words])
   public static wordsSet(state: WordStateModel, words: string[]): Set<string> {
     return new Set(words);
+  }
+
+  @Selector([WordState.word, WordState.definitions])
+  public static wordWithDefinitions(state: WordStateModel, word: string, definitions: string[]): IDefinitionsResponse {
+    return { word, definitions };
   }
 
   @Action(WordActions.SetWords)
@@ -47,10 +58,11 @@ export class WordState {
   @Action(WordActions.SetWord)
   setWord(
     ctx: StateContext<WordStateModel>,
-    { word }: WordActions.SetWord
+    { wordWithDefinitions: { word, definitions } }: WordActions.SetWord
   ) {
     ctx.patchState({
       word,
+      definitions,
     })
   }
 
@@ -62,9 +74,13 @@ export class WordState {
     const { words } = ctx.getState()
     const word = words[Math.floor(Math.random() * words.length)];
 
-    ctx.patchState({
-      word,
-    })
+    return this.http.get<IDefinitionsResponse>(`/api/definitions?word=${word}`).pipe(
+      first(),
+      tap(response => ctx.patchState({
+        word,
+        definitions: response.definitions
+      }))
+    )
   }
 
   ngxsAfterBootstrap(ctx: StateContext<WordStateModel>) {

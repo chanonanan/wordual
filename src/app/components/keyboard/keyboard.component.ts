@@ -32,6 +32,9 @@ import { TouchDirective } from 'src/app/directives/touch.directive';
 export class KeyboardComponent {
   @HostListener('document:keyup', ['$event'])
   onKeyUp(event: KeyboardEvent): void {
+    if (this.store.selectSnapshot(GameState.roundWinner)) {
+      return;
+    }
     this.onKeyTap(event.key, event);
     this.animateKey(event.key);
   }

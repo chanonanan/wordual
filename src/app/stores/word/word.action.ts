@@ -1,3 +1,5 @@
+import { IDefinitionsResponse } from '@models/word.model';
+
 export namespace WordActions {
   export class SetWords {
     static readonly type = '[Word] Set Words';
@@ -6,7 +8,7 @@ export namespace WordActions {
 
   export class SetWord {
     static readonly type = '[Word] Set Word';
-    constructor(public word: string) { }
+    constructor(public wordWithDefinitions: IDefinitionsResponse) { }
   }
 
   export class GetNewWord {
