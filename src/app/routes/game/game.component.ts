@@ -75,7 +75,6 @@ export class GameComponent implements AfterViewInit {
       } else {
         this.dialog.nativeElement.close();
         this.dialog.nativeElement.classList.add('hide');
-        this.btn.nativeElement.classList.remove('hide');
       }
     })
   }
