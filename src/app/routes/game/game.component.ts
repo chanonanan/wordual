@@ -24,7 +24,7 @@ import { Observable } from 'rxjs';
         answer: answer$ | async,
         definitions: definitions$ | async
       } as data">
-        <button class="new-game-btn" #btn *ngIf="data.isHost && data.winner" (click)="newGame()">New Game</button>
+        <button class="new-game-btn hide" #btn *ngIf="data.isHost && data.winner" (click)="newGame()">New Game</button>
         <dialog #dialog class="hide">
           <section class="header">
             <p>{{ data.winner }}</p>
@@ -72,7 +72,6 @@ export class GameComponent implements AfterViewInit {
       if (roundWinner) {
         this.dialog.nativeElement.showModal();
         this.dialog.nativeElement.classList.remove('hide');
-        this.btn.nativeElement.classList.add('hide');
       } else {
         this.dialog.nativeElement.close();
         this.dialog.nativeElement.classList.add('hide');
