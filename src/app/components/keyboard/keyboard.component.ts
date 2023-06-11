@@ -32,9 +32,6 @@ import { TouchDirective } from 'src/app/directives/touch.directive';
 export class KeyboardComponent {
   @HostListener('document:keyup', ['$event'])
   onKeyUp(event: KeyboardEvent): void {
-    if (this.store.selectSnapshot(GameState.roundWinner)) {
-      return;
-    }
     this.onKeyTap(event.key, event);
     this.animateKey(event.key);
   }
@@ -54,6 +51,9 @@ export class KeyboardComponent {
   private store: Store = inject(Store);
 
   onKeyTap(key: string, event: Event): void {
+    if (this.store.selectSnapshot(GameState.roundWinner)) {
+      return;
+    }
     switch (key.toLowerCase()) {
       case 'enter':
         this.store.dispatch(new GameActions.EnterWord());
@@ -80,6 +80,9 @@ export class KeyboardComponent {
   }
 
   private animateKey(key: string): void {
+    if (this.store.selectSnapshot(GameState.roundWinner)) {
+      return;
+    }
     let element = (document.querySelector(`#${key}`) as HTMLButtonElement);
 
     if (element) {
